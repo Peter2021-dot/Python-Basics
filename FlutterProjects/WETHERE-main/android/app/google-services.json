@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "370087424389",
+    "project_id": "wethere-fed83",
+    "storage_bucket": "wethere-fed83.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370087424389:android:b04612051cea039c9594ec",
+        "android_client_info": {
+          "package_name": "com.example.wethere"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlrDmP3z53ZEtpdUCb8bkt1y5fyuOTFbE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
