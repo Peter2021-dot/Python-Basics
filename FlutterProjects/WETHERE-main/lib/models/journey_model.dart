@@ -5,10 +5,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum CompensationType {
-  hourlyPay,
-  freeItem,
-  coveredExpense,
-  companionChoice,
+  withoutRemuneration,
+  withGift,
 }
 
 class JourneyModel {
@@ -33,13 +31,11 @@ class JourneyModel {
   final DateTime endTime;
   final int duration; // in hours
   
-  // Compensation
+  // Compensation - Simplified system
   final CompensationType compensationType;
-  final int? hourlyRate;
-  final String? freeItemDesc;
-  final String? freeItemEmoji;
-  final String? coveredExpenseDesc;
-  final String? coveredExpenseEmoji;
+  final String? giftDescription; // For "with gift" - can be money amount or item description
+  final String? giftEmoji;
+  final double? giftValue; // Estimated monetary value of the gift
   
   // Status
   final String status; // open, filled, completed, cancelled
@@ -76,11 +72,9 @@ class JourneyModel {
     required this.endTime,
     required this.duration,
     required this.compensationType,
-    this.hourlyRate,
-    this.freeItemDesc,
-    this.freeItemEmoji,
-    this.coveredExpenseDesc,
-    this.coveredExpenseEmoji,
+    this.giftDescription,
+    this.giftEmoji,
+    this.giftValue,
     this.status = 'open',
     this.maxCompanions = 1,
     this.currentApplicants = 0,
@@ -114,11 +108,9 @@ class JourneyModel {
       'endTime': Timestamp.fromDate(endTime),
       'duration': duration,
       'compensationType': compensationType.toString().split('.').last,
-      'hourlyRate': hourlyRate,
-      'freeItemDesc': freeItemDesc,
-      'freeItemEmoji': freeItemEmoji,
-      'coveredExpenseDesc': coveredExpenseDesc,
-      'coveredExpenseEmoji': coveredExpenseEmoji,
+      'giftDescription': giftDescription,
+      'giftEmoji': giftEmoji,
+      'giftValue': giftValue,
       'status': status,
       'maxCompanions': maxCompanions,
       'currentApplicants': currentApplicants,
@@ -155,11 +147,9 @@ class JourneyModel {
       endTime: data['endTime'] != null && data['endTime'] is Timestamp ? (data['endTime'] as Timestamp).toDate() : DateTime.now(),
       duration: data['duration'] ?? 0,
       compensationType: _parseCompensationType(data['compensationType']),
-      hourlyRate: data['hourlyRate'],
-      freeItemDesc: data['freeItemDesc'],
-      freeItemEmoji: data['freeItemEmoji'],
-      coveredExpenseDesc: data['coveredExpenseDesc'],
-      coveredExpenseEmoji: data['coveredExpenseEmoji'],
+      giftDescription: data['giftDescription'],
+      giftEmoji: data['giftEmoji'],
+      giftValue: data['giftValue']?.toDouble(),
       status: data['status'] ?? 'open',
       maxCompanions: data['maxCompanions'] ?? 1,
       currentApplicants: data['currentApplicants'] ?? 0,
@@ -178,44 +168,32 @@ class JourneyModel {
 
   static CompensationType _parseCompensationType(String? type) {
     switch (type) {
-      case 'hourlyPay':
-        return CompensationType.hourlyPay;
-      case 'freeItem':
-        return CompensationType.freeItem;
-      case 'coveredExpense':
-        return CompensationType.coveredExpense;
-      case 'companionChoice':
-        return CompensationType.companionChoice;
+      case 'withoutRemuneration':
+        return CompensationType.withoutRemuneration;
+      case 'withGift':
+        return CompensationType.withGift;
       default:
-        return CompensationType.hourlyPay;
+        return CompensationType.withoutRemuneration;
     }
   }
 
   // Get badge text for UI
   String get badgeText {
     switch (compensationType) {
-      case CompensationType.hourlyPay:
-        return '\$${hourlyRate ?? 0}/h';
-      case CompensationType.freeItem:
-        return '${freeItemEmoji ?? '🎫'} ${freeItemDesc ?? 'Free'}';
-      case CompensationType.coveredExpense:
-        return '${coveredExpenseEmoji ?? '🍽️'} ${coveredExpenseDesc ?? 'Covered'}';
-      case CompensationType.companionChoice:
-        return '\$${hourlyRate ?? 0}/h OR ${freeItemEmoji ?? '🎫'} Free';
+      case CompensationType.withoutRemuneration:
+        return 'No Remuneration';
+      case CompensationType.withGift:
+        return '${giftEmoji ?? '�'} ${giftDescription ?? 'Gift'}';
     }
   }
 
   // Get badge color for UI
   String get badgeColorHex {
     switch (compensationType) {
-      case CompensationType.hourlyPay:
+      case CompensationType.withoutRemuneration:
+        return '#9E9E9E';
+      case CompensationType.withGift:
         return '#FF6B35';
-      case CompensationType.freeItem:
-        return '#4CAF50';
-      case CompensationType.coveredExpense:
-        return '#26A69A';
-      case CompensationType.companionChoice:
-        return '#7C4DFF';
     }
   }
 
@@ -234,11 +212,9 @@ class JourneyModel {
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
       'compensationType': compensationType.toString().split('.').last,
-      'hourlyRate': hourlyRate,
-      'freeItemDesc': freeItemDesc,
-      'freeItemEmoji': freeItemEmoji,
-      'coveredExpenseDesc': coveredExpenseDesc,
-      'coveredExpenseEmoji': coveredExpenseEmoji,
+      'giftDescription': giftDescription,
+      'giftEmoji': giftEmoji,
+      'giftValue': giftValue,
     };
   }
 }

@@ -138,19 +138,19 @@ class JourneyService {
       
       if (usePriceInDb) {
          if (priceRange == 'under15') {
-            query = query.where('hourlyRate', isLessThan: 15);
-            query = query.orderBy('hourlyRate');
+            query = query.where('giftValue', isLessThan: 15);
+            query = query.orderBy('giftValue');
          } else if (priceRange == '15to25') {
-            query = query.where('hourlyRate', isGreaterThanOrEqualTo: 15);
-            query = query.where('hourlyRate', isLessThanOrEqualTo: 25);
-            query = query.orderBy('hourlyRate');
+            query = query.where('giftValue', isGreaterThanOrEqualTo: 15);
+            query = query.where('giftValue', isLessThanOrEqualTo: 25);
+            query = query.orderBy('giftValue');
          } else if (priceRange == '25to40') {
-            query = query.where('hourlyRate', isGreaterThanOrEqualTo: 25);
-            query = query.where('hourlyRate', isLessThanOrEqualTo: 40);
-            query = query.orderBy('hourlyRate');
+            query = query.where('giftValue', isGreaterThanOrEqualTo: 25);
+            query = query.where('giftValue', isLessThanOrEqualTo: 40);
+            query = query.orderBy('giftValue');
          } else if (priceRange == 'over40') {
-            query = query.where('hourlyRate', isGreaterThan: 40);
-            query = query.orderBy('hourlyRate', descending: true);
+            query = query.where('giftValue', isGreaterThan: 40);
+            query = query.orderBy('giftValue', descending: true);
          }
       }
 
@@ -161,7 +161,7 @@ class JourneyService {
             query = query.orderBy('startTime', descending: false);
             break;
           case 'highestPay':
-            query = query.orderBy('hourlyRate', descending: true);
+            query = query.orderBy('giftValue', descending: true);
             break;
           case 'recent':
           default:
@@ -203,12 +203,12 @@ class JourneyService {
         // 3. Price Filter (if not filtered in DB)
         if (!usePriceInDb && priceRange != null && priceRange != 'any') {
            results.retainWhere((j) {
-              final rate = j.hourlyRate ?? 0;
+              final value = j.giftValue ?? 0;
               switch (priceRange) {
-                case 'under15': return rate < 15;
-                case '15to25': return rate >= 15 && rate <= 25;
-                case '25to40': return rate >= 25 && rate <= 40;
-                case 'over40': return rate > 40;
+                case 'under15': return value < 15;
+                case '15to25': return value >= 15 && value <= 25;
+                case '25to40': return value >= 25 && value <= 40;
+                case 'over40': return value > 40;
                 default: return true;
               }
            });

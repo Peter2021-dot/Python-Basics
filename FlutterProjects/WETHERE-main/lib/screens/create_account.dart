@@ -6,6 +6,7 @@ import 'package:wethere/screens/join_page.dart';
 import 'package:wethere/services/auth_service.dart';
 import 'package:wethere/screens/password_login.dart';
 import 'package:wethere/screens/home_page.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({super.key});
@@ -100,53 +101,50 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 const Center(child: CircularProgressIndicator())
               else ...[
                 // Continue with Google
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _handleFederatedSignUp('Google'),
-                    icon: const Icon(Icons.g_mobiledata, size: 28),
-                    label: const Text('Continue with Google', style: TextStyle(fontSize: 16)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4285F4),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMd)),
-                      elevation: 0,
-                    ),
+                ShadButton(
+                  onPressed: () => _handleFederatedSignUp('Google'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.g_mobiledata, size: 28),
+                      const SizedBox(width: 12),
+                      const Text('Continue with Google', style: TextStyle(fontSize: 16)),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppTheme.spacingMd),
 
                 // Continue with Apple
                 if ((!kIsWeb && Platform.isIOS) || kDebugMode)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _handleFederatedSignUp('Apple'),
-                      icon: const Icon(Icons.apple, size: 28),
-                      label: const Text('Continue with Apple', style: TextStyle(fontSize: 16)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusMd)),
-                        elevation: 0,
-                      ),
+                  ShadButton.outline(
+                    onPressed: () => _handleFederatedSignUp('Apple'),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.apple, size: 28),
+                        const SizedBox(width: 12),
+                        const Text('Continue with Apple', style: TextStyle(fontSize: 16)),
+                      ],
                     ),
                   ),
                 const SizedBox(height: AppTheme.spacingMd),
 
                 // Or Continue with Email
-                TextButton.icon(
+                ShadButton.outline(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const JoinIntroPage()),
                     );
                   },
-                  icon: const Icon(Icons.email_outlined),
-                  label: const Text('Sign up with Email', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: TextButton.styleFrom(foregroundColor: AppTheme.accentOrange),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.email_outlined),
+                      const SizedBox(width: 12),
+                      const Text('Sign up with Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
               ],
 

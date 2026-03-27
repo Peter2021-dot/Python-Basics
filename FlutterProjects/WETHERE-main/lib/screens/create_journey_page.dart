@@ -5,13 +5,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// AppTheme import removed (unused) to tidy warnings
 import 'package:wethere/models/journey_model.dart';
 import 'package:wethere/providers/journey_provider.dart';
 import 'package:wethere/services/auth_service.dart';
-import 'package:wethere/services/image_generation_service.dart';
+import 'package:wethere/services/category_service.dart';
+import 'package:wethere/theme/app_theme.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class CreateJourneyPage extends StatefulWidget {
   final JourneyModel? existingJourney;
@@ -27,7 +28,6 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
   bool _isCreating = false;
 
   final AuthService _authService = AuthService();
-  final ImageGenerationService _imageGenService = ImageGenerationService();
 
   // Step 1
   final _titleController = TextEditingController();
@@ -40,15 +40,15 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
   TimeOfDay _startTime = const TimeOfDay(hour: 10, minute: 0);
   TimeOfDay _endTime = const TimeOfDay(hour: 12, minute: 0);
 
-  // Step 3
+  // Step 3 - Simplified compensation
   CompensationType? _selectedCompensationType;
-  final _hourlyRateController = TextEditingController(text: '15');
-  final _freeItemDescController = TextEditingController();
-  final _coveredExpenseDescController = TextEditingController();
-  final _choiceHourlyRateController = TextEditingController(text: '20');
-  final _choiceFreeItemDescController = TextEditingController();
-  String? _generatedImageUrl;
-  bool _isGeneratingImage = false;
+  final _giftDescriptionController = TextEditingController();
+  final _giftValueController = TextEditingController();
+  String _selectedGiftEmoji = '🎁';
+  
+  // Category-based image system
+  JourneyCategory? _selectedCategory;
+  String? _selectedImageUrl;
 
   @override
   void initState() {
@@ -64,17 +64,23 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
       _endTime = TimeOfDay.fromDateTime(j.endTime);
       _selectedCompensationType = j.compensationType;
       
-      if (j.compensationType == CompensationType.hourlyPay) {
-        _hourlyRateController.text = j.hourlyRate?.toString() ?? '15';
-      } else if (j.compensationType == CompensationType.freeItem) {
-        _freeItemDescController.text = j.freeItemDesc ?? '';
-      } else if (j.compensationType == CompensationType.coveredExpense) {
-        _coveredExpenseDescController.text = j.coveredExpenseDesc ?? '';
-      } else if (j.compensationType == CompensationType.companionChoice) {
-        _choiceHourlyRateController.text = j.hourlyRate?.toString() ?? '20';
-        _choiceFreeItemDescController.text = j.freeItemDesc ?? '';
+      // Load gift details if editing existing journey
+      if (j.compensationType == CompensationType.withGift) {
+        _giftDescriptionController.text = j.giftDescription ?? '';
+        _giftValueController.text = j.giftValue?.toString() ?? '';
+        _selectedGiftEmoji = j.giftEmoji ?? '🎁';
       }
-      _generatedImageUrl = j.imageUrl;
+      _selectedImageUrl = j.imageUrl;
+      
+      // Try to find category based on existing image or title
+      if (j.imageUrl != null && j.imageUrl!.isNotEmpty) {
+        final foundCategory = CategoryService.getAllCategories().where(
+          (cat) => cat.imagePath == j.imageUrl,
+        ).firstOrNull;
+        _selectedCategory = foundCategory ?? CategoryService.findBestCategory(j.title, j.description);
+      } else {
+        _selectedCategory = CategoryService.findBestCategory(j.title, j.description);
+      }
     }
   }
 
@@ -84,11 +90,8 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
     _descriptionController.dispose();
     _locationController.dispose();
     _meetingPointController.dispose();
-    _hourlyRateController.dispose();
-    _freeItemDescController.dispose();
-    _coveredExpenseDescController.dispose();
-    _choiceHourlyRateController.dispose();
-    _choiceFreeItemDescController.dispose();
+    _giftDescriptionController.dispose();
+    _giftValueController.dispose();
     super.dispose();
   }
 
@@ -104,21 +107,22 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
     // ✅ Read provider BEFORE async
     final journeyProvider = context.read<JourneyProvider>();
 
-    String finalImageUrl = _generatedImageUrl ?? 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=800';
+    String finalImageUrl = _selectedImageUrl ?? 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=800';
     
-    // If we haven't generated one yet, try to generate it now
-    if (_generatedImageUrl == null && _titleController.text.isNotEmpty) {
-      try {
-        // Wait at most 12 seconds for image generation/upload to avoid blocking user
-        await _manualGenerateImage().timeout(const Duration(seconds: 12));
-      } catch (e) {
-        debugPrint('Image generation timed out or failed: $e. Using fallback image to proceed.');
-        // If it times out, _generatedImageUrl remains null, and we'll use finalImageUrl fallback.
+    // Use category-based image or auto-select category if none selected
+    if (_selectedImageUrl == null) {
+      if (_selectedCategory == null) {
+        // Auto-select category based on title and description
+        _selectedCategory = CategoryService.findBestCategory(
+          _titleController.text, 
+          _descriptionController.text
+        );
       }
-      
-      if (_generatedImageUrl != null) {
-        finalImageUrl = _generatedImageUrl!;
-      }
+      _selectedImageUrl = _selectedCategory?.imagePath;
+    }
+    
+    if (_selectedImageUrl != null) {
+      finalImageUrl = _selectedImageUrl!;
     }
 
     try {
@@ -233,22 +237,15 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
         endTime: endDateTime,
         duration: durationHours,
         compensationType: _selectedCompensationType!,
-        hourlyRate: _selectedCompensationType == CompensationType.hourlyPay
-            ? int.tryParse(_hourlyRateController.text)
-            : _selectedCompensationType ==
-                    CompensationType.companionChoice
-                ? int.tryParse(_choiceHourlyRateController.text)
-                : null,
-        freeItemDesc: _selectedCompensationType == CompensationType.freeItem
-            ? _freeItemDescController.text
-            : _selectedCompensationType ==
-                    CompensationType.companionChoice
-                ? _choiceFreeItemDescController.text
-                : null,
-        coveredExpenseDesc:
-            _selectedCompensationType == CompensationType.coveredExpense
-                ? _coveredExpenseDescController.text
-                : null,
+        giftDescription: _selectedCompensationType == CompensationType.withGift
+            ? _giftDescriptionController.text
+            : null,
+        giftEmoji: _selectedCompensationType == CompensationType.withGift
+            ? _selectedGiftEmoji
+            : null,
+        giftValue: _selectedCompensationType == CompensationType.withGift
+            ? double.tryParse(_giftValueController.text)
+            : null,
         city: city,
         tags: _generateTags(),
       );
@@ -333,22 +330,15 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
         'endTime': Timestamp.fromDate(endDateTime),
         'duration': durationHours,
         'compensationType': _selectedCompensationType!.toString().split('.').last,
-        'hourlyRate': _selectedCompensationType == CompensationType.hourlyPay
-            ? int.tryParse(_hourlyRateController.text)
-            : _selectedCompensationType ==
-                    CompensationType.companionChoice
-                ? int.tryParse(_choiceHourlyRateController.text)
-                : null,
-        'freeItemDesc': _selectedCompensationType == CompensationType.freeItem
-            ? _freeItemDescController.text
-            : _selectedCompensationType ==
-                    CompensationType.companionChoice
-                ? _choiceFreeItemDescController.text
-                : null,
-        'coveredExpenseDesc':
-            _selectedCompensationType == CompensationType.coveredExpense
-                ? _coveredExpenseDescController.text
-                : null,
+        'giftDescription': _selectedCompensationType == CompensationType.withGift
+            ? _giftDescriptionController.text
+            : null,
+        'giftEmoji': _selectedCompensationType == CompensationType.withGift
+            ? _selectedGiftEmoji
+            : null,
+        'giftValue': _selectedCompensationType == CompensationType.withGift
+            ? double.tryParse(_giftValueController.text)
+            : null,
         'city': city,
         'tags': _generateTags(),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -383,31 +373,46 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
     }
   }
 
-  Future<void> _manualGenerateImage() async {
-    if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title first')),
-      );
-      return;
-    }
-
-    setState(() => _isGeneratingImage = true);
-
-    try {
-      final generatedUrl = await _imageGenService.generateAndUploadImage(_titleController.text);
-      if (generatedUrl != null) {
-        setState(() {
-          _generatedImageUrl = generatedUrl;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error manually generating image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating image: $e')),
-      );
-    } finally {
-      setState(() => _isGeneratingImage = false);
-    }
+  void _showCategorySelection() {
+    final categories = CategoryService.getAllCategories();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Journey Category'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView.builder(
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: AssetImage(category.imagePath),
+                  backgroundColor: Colors.grey[200],
+                ),
+                title: Text(category.name),
+                subtitle: Text(category.description),
+                onTap: () {
+                  setState(() {
+                    _selectedCategory = category;
+                    _selectedImageUrl = category.imagePath;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ========================================================================
@@ -417,187 +422,362 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Update Journey' : 'Create Journey')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Update Journey' : 'Create Journey'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextFormField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Title',
-                    suffixIcon: _isGeneratingImage
-                        ? const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.image_search),
-                            onPressed: _manualGenerateImage,
-                            tooltip: 'Generate Image',
-                          ),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                ),
-                const SizedBox(height: 12),
-                if (_generatedImageUrl != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Journey Image Section
+              ShadCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        const Text('Journey Image Preview', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Stack(
-                            children: [
-                              Image.network(
-                                _generatedImageUrl!,
-                                height: 180,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  height: 180,
-                                  color: Colors.grey[200],
-                                  child: const Center(child: Icon(Icons.broken_image)),
+                        Icon(Icons.image_outlined, color: AppTheme.accentOrange),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Journey Image',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        ShadButton.outline(
+                            onPressed: _showCategorySelection,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.category, size: 16),
+                                const SizedBox(width: 4),
+                                const Text('Select Category'),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    if (_selectedImageUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Stack(
+                          children: [
+                            Image.asset(
+                              _selectedImageUrl!,
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                height: 200,
+                                color: Colors.grey[200],
+                                child: const Center(child: Icon(Icons.broken_image)),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: ShadButton(
+                                onPressed: _showCategorySelection,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.refresh, size: 16, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    const Text('Change Category', style: TextStyle(color: Colors.white)),
+                                  ],
                                 ),
                               ),
-                              Positioned(
-                                bottom: 8,
-                                right: 8,
-                                child: ElevatedButton.icon(
-                                  onPressed: _isGeneratingImage ? null : _manualGenerateImage,
-                                  icon: const Icon(Icons.refresh, size: 16),
-                                  label: const Text('Regenerate'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black.withOpacity(0.6),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (_selectedCategory != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.accentOrange.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.category, color: AppTheme.accentOrange, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Category: ${_selectedCategory!.name}',
+                                style: TextStyle(
+                                  color: AppTheme.accentOrange,
+                                  fontWeight: FontWeight.w600,
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_outlined, size: 48, color: Colors.grey),
+                              SizedBox(height: 8),
+                              Text(
+                                'No image yet',
+                                style: TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
                         ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Basic Information Section
+              ShadCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline, color: AppTheme.accentOrange),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Basic Information',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: 'Location',
-                    hintText: 'e.g., 123 Main St, Seattle, WA 98101',
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Location is required';
-                    final hasZip = v.contains(RegExp(r'\d{5}'));
-                    if (!hasZip) return 'Please include a 5-digit zip code';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _meetingPointController,
-                  decoration: const InputDecoration(labelText: 'Meeting point'),
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  title: Text('Date: ${_selectedDate.toLocal().toString().split(' ').first}'),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (d != null) setState(() => _selectedDate = d);
-                  },
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ListTile(
-                        title: Text('Start: ${_startTime.format(context)}'),
-                        trailing: const Icon(Icons.access_time),
-                        onTap: () async {
-                          final t = await showTimePicker(
-                              context: context, initialTime: _startTime);
-                          if (t != null) setState(() => _startTime = t);
-                        },
-                      ),
+                    const SizedBox(height: 16),
+                    ShadInput(
+                      controller: _titleController,
+                      placeholder: const Text('Give your journey a catchy title...'),
                     ),
-                    Expanded(
-                      child: ListTile(
-                        title: Text('End: ${_endTime.format(context)}'),
-                        trailing: const Icon(Icons.access_time),
-                        onTap: () async {
-                          final t = await showTimePicker(
-                              context: context, initialTime: _endTime);
-                          if (t != null) setState(() => _endTime = t);
-                        },
-                      ),
+                    const SizedBox(height: 16),
+                    ShadInput(
+                      controller: _descriptionController,
+                      placeholder: const Text('Describe what makes this journey special...'),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    ShadInput(
+                      controller: _locationController,
+                      placeholder: const Text('e.g., 123 Main St, Seattle, WA 98101'),
+                    ),
+                    const SizedBox(height: 16),
+                    ShadInput(
+                      controller: _meetingPointController,
+                      placeholder: const Text('Where will you meet?'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<CompensationType>(
-                  value: _selectedCompensationType,
-                  decoration: const InputDecoration(labelText: 'Compensation'),
-                  items: CompensationType.values
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.toString().split('.').last),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _selectedCompensationType = v),
-                  validator: (v) => v == null ? 'Select a compensation type' : null,
+              ),
+              const SizedBox(height: 24),
+
+              // Schedule Section
+              ShadCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, color: AppTheme.accentOrange),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Schedule',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ShadButton.outline(
+                      onPressed: () async {
+                        final d = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (d != null) setState(() => _selectedDate = d);
+                      },
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 16),
+                          const SizedBox(width: 8),
+                          Text('Date: ${_selectedDate.toLocal().toString().split(' ').first}'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ShadButton.outline(
+                            onPressed: () async {
+                              final t = await showTimePicker(
+                                  context: context, initialTime: _startTime);
+                              if (t != null) setState(() => _startTime = t);
+                            },
+                            child: Row(
+                              children: [
+                                const Icon(Icons.access_time, size: 16),
+                                const SizedBox(width: 8),
+                                Text('Start: ${_startTime.format(context)}'),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ShadButton.outline(
+                            onPressed: () async {
+                              final t = await showTimePicker(
+                                  context: context, initialTime: _endTime);
+                              if (t != null) setState(() => _endTime = t);
+                            },
+                            child: Row(
+                              children: [
+                                const Icon(Icons.access_time, size: 16),
+                                const SizedBox(width: 8),
+                                Text('End: ${_endTime.format(context)}'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                if (_selectedCompensationType == CompensationType.hourlyPay ||
-                    _selectedCompensationType == CompensationType.companionChoice)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: TextFormField(
-                      controller: _hourlyRateController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Hourly rate'),
+              ),
+              const SizedBox(height: 24),
+
+              // Compensation Section
+              ShadCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.payments_outlined, color: AppTheme.accentOrange),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Compensation',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                if (_selectedCompensationType == CompensationType.freeItem ||
-                    _selectedCompensationType == CompensationType.companionChoice)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: TextFormField(
-                      controller: _freeItemDescController,
-                      decoration: const InputDecoration(labelText: 'Free item description'),
+                    const SizedBox(height: 16),
+                    // Simplified Compensation Selection
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Compensation',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Two simple radio button options
+                        RadioListTile<CompensationType>(
+                          title: const Text('Without Remuneration'),
+                          subtitle: const Text('No payment - just for the experience'),
+                          value: CompensationType.withoutRemuneration,
+                          groupValue: _selectedCompensationType,
+                          onChanged: (value) => setState(() => _selectedCompensationType = value),
+                        ),
+                        RadioListTile<CompensationType>(
+                          title: const Text('With Gift'),
+                          subtitle: const Text('Offer money or a gift as appreciation'),
+                          value: CompensationType.withGift,
+                          groupValue: _selectedCompensationType,
+                          onChanged: (value) => setState(() => _selectedCompensationType = value),
+                        ),
+                        
+                        // Gift details section
+                        if (_selectedCompensationType == CompensationType.withGift) ...[
+                          const SizedBox(height: 16),
+                          ShadInput(
+                            controller: _giftDescriptionController,
+                            placeholder: const Text('e.g., \$20, Coffee gift card, Free lunch...'),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ShadInput(
+                                  controller: _giftValueController,
+                                  placeholder: const Text('Estimated value (\$)'),
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: DropdownButton<String>(
+                                  value: _selectedGiftEmoji,
+                                  underline: const SizedBox(),
+                                  items: const [
+                                    DropdownMenuItem(value: '🎁', child: Text('🎁')),
+                                    DropdownMenuItem(value: '💰', child: Text('💰')),
+                                    DropdownMenuItem(value: '☕', child: Text('☕')),
+                                    DropdownMenuItem(value: '🍽️', child: Text('🍽️')),
+                                    DropdownMenuItem(value: '🎫', child: Text('🎫')),
+                                    DropdownMenuItem(value: '🛍️', child: Text('🛍️')),
+                                  ],
+                                  onChanged: (value) => setState(() => _selectedGiftEmoji = value!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
-                  ),
-                if (_selectedCompensationType == CompensationType.coveredExpense)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: TextFormField(
-                      controller: _coveredExpenseDescController,
-                      decoration: const InputDecoration(labelText: 'Covered expense description'),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                ElevatedButton(
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ShadButton(
                   onPressed: _isCreating
                       ? null
                       : () {
@@ -613,12 +793,15 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : Text(_isEditing ? 'Update Journey' : 'Create Journey'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

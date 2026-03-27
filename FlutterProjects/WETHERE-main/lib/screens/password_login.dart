@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wethere/theme/app_theme.dart';
 import 'package:wethere/screens/find_account_page.dart';
 import 'package:wethere/screens/home_page.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class PasswordLoginPage extends StatefulWidget {
   const PasswordLoginPage({super.key});
@@ -112,70 +113,108 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(AppTheme.spacingSm),
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.onSurface, width: 1.5),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: Icon(
-              Icons.arrow_back,
-              color: Theme.of(context).colorScheme.onSurface,
-              size: 18,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.accentOrange.withOpacity(0.08),
+              AppTheme.primaryDark.withOpacity(0.05),
+              Colors.white,
+              AppTheme.accentOrange.withOpacity(0.06),
+            ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
-          onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: true,
-        title: Text(
-          'Log in',
-          style: AppTheme.headingM.copyWith(color: Theme.of(context).colorScheme.primary),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppTheme.spacingMd),
-
-              // Email input
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: AppTheme.buildInputDecoration(
-                  hintText: 'Email',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-
-              // Password input
-              TextField(
-                controller: passwordController,
-                obscureText: _obscurePassword,
-                decoration: AppTheme.buildInputDecoration(
-                  hintText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: AppTheme.textSecondary,
-                      size: 20,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width > 600 ? AppTheme.spacingXl * 2 : AppTheme.spacingLg,
+              vertical: AppTheme.spacingLg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back button
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(AppTheme.spacingSm),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Theme.of(context).colorScheme.onSurface, width: 1.5),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
+                    child: Icon(
+                      Icons.arrow_back,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 18,
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(height: AppTheme.spacingXl),
+
+                // Title with ShadCN typography
+                Text(
+                  'Welcome Back',
+                  style: ShadTheme.of(context).textTheme.h1.copyWith(
+                    color: AppTheme.accentOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: MediaQuery.of(context).size.width > 600 ? 48 : 36,
                   ),
                 ),
-              ),
+                const SizedBox(height: AppTheme.spacingSm),
+
+                Text(
+                  'Enter your credentials to access your account',
+                  style: ShadTheme.of(context).textTheme.muted.copyWith(
+                    fontSize: MediaQuery.of(context).size.width > 600 ? 18 : 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingXl),
+
+                // Email input in ShadCard
+                ShadCard(
+                  child: TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: 'Email',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingMd),
+
+                // Password input in ShadCard
+                ShadCard(
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppTheme.textSecondary,
+                          size: 20,
+                        ),
+                        onPressed: () =>
+                            setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                  ),
+                ),
               const SizedBox(height: AppTheme.spacingSm),
 
               // Forgot password
@@ -203,12 +242,14 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
               const SizedBox(height: AppTheme.spacingLg),
 
               // Login button
-              SizedBox(
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.accentOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
+                child: ShadButton(
                   onPressed: loading ? null : loginUser,
-                  style: AppTheme.primaryButtonStyle,
                   child: loading
                       ? const SizedBox(
                           width: 24,
@@ -218,7 +259,7 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Log in', style: AppTheme.buttonText),
+                      : const Text('Log in', style: TextStyle(color: Colors.white)),
                 ),
               ),
               const SizedBox(height: AppTheme.spacingLg),
@@ -245,37 +286,15 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
               // Google Sign-In Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
+                child: ShadButton.outline(
                   onPressed: () => _handleFederatedSignIn('Google'),
-                  icon: const Icon(Icons.g_mobiledata, size: 28),
-                  label: const Text(
-                    'Continue with Google',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4285F4),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    ),
-                    elevation: 0,
-                  ).copyWith(
-                    overlayColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.hovered)) {
-                        return Colors.white.withValues(alpha: 0.15);
-                      }
-                      if (states.contains(WidgetState.pressed)) {
-                        return Colors.white.withValues(alpha: 0.25);
-                      }
-                      return null;
-                    }),
-                    backgroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.hovered)) {
-                        return const Color(0xFF5A9BF6);
-                      }
-                      return const Color(0xFF4285F4);
-                    }),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.g_mobiledata, size: 28),
+                      const SizedBox(width: 12),
+                      const Text('Continue with Google', style: TextStyle(fontSize: 16)),
+                    ],
                   ),
                 ),
               ),
@@ -285,43 +304,22 @@ class _PasswordLoginPageState extends State<PasswordLoginPage> {
               if ((!kIsWeb && Platform.isIOS) || kDebugMode)
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton.icon(
+                  child: ShadButton.outline(
                     onPressed: () => _handleFederatedSignIn('Apple'),
-                    icon: const Icon(Icons.apple, size: 28),
-                    label: const Text(
-                      'Continue with Apple',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      ),
-                      elevation: 0,
-                    ).copyWith(
-                      overlayColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.hovered)) {
-                          return Colors.white.withValues(alpha: 0.15);
-                        }
-                        if (states.contains(WidgetState.pressed)) {
-                          return Colors.white.withValues(alpha: 0.25);
-                        }
-                        return null;
-                      }),
-                      backgroundColor: WidgetStateProperty.resolveWith((states) {
-                        if (states.contains(WidgetState.hovered)) {
-                          return const Color(0xFF333333);
-                        }
-                        return Colors.black;
-                      }),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.apple, size: 28),
+                        const SizedBox(width: 12),
+                        const Text('Continue with Apple', style: TextStyle(fontSize: 16)),
+                      ],
                     ),
                   ),
                 ),
             ],
           ),
         ),
+      ),
       ),
     );
   }

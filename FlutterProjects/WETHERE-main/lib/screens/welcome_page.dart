@@ -17,65 +17,131 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon with shadow
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.accentOrange.withOpacity(0.2),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.check_circle,
-                  size: 100,
-                  color: AppTheme.accentOrange,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingXl),
-
-              // Welcome text
-              Text('Welcome!', style: AppTheme.headlineXL),
-              const SizedBox(height: AppTheme.spacingSm),
-
-              Text(
-                'Glad you are here',
-                style: AppTheme.bodyLarge.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingXxl),
-
-              // Get Started Button - Now goes directly to Feed
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HomePage(),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                  style: AppTheme.primaryButtonStyle,
-                  child: const Text('Get Started', style: AppTheme.buttonText),
-                ),
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.accentOrange.withOpacity(0.08),
+              AppTheme.primaryDark.withOpacity(0.05),
+              Colors.white,
+              AppTheme.accentOrange.withOpacity(0.06),
             ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLg),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Modern Avatar with Card
+                Card(
+                  elevation: 8,
+                  shadowColor: AppTheme.accentOrange.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.accentOrange.withOpacity(0.1),
+                          AppTheme.accentOrange.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Icon(
+                      Icons.check_circle,
+                      size: 100,
+                      color: AppTheme.accentOrange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingXl),
+
+                // Welcome text with modern typography
+                Text(
+                  'Welcome!',
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: AppTheme.accentOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 36,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingSm),
+
+                Text(
+                  'Glad you are here',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingXxl),
+
+                // Modern Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentOrange,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ).copyWith(
+                      overlayColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.hovered)) {
+                          return Colors.white.withOpacity(0.15);
+                        }
+                        if (states.contains(WidgetState.pressed)) {
+                          return Colors.white.withOpacity(0.25);
+                        }
+                        return null;
+                      }),
+                      backgroundColor: WidgetStateProperty.resolveWith((states) {
+                        if (states.contains(WidgetState.hovered)) {
+                          return const Color(0xFFE55A2B);
+                        }
+                        if (states.contains(WidgetState.disabled)) {
+                          return AppTheme.borderColor;
+                        }
+                        return AppTheme.accentOrange;
+                      }),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

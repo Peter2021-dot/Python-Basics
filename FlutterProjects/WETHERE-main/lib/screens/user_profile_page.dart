@@ -97,8 +97,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         child: Column(
           children: [
             Container(
-              width: 100,
-              height: 100,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.dividerColor,
@@ -119,9 +119,9 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                     )
                   : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 9),
             Text(widget.userName, style: AppTheme.headingM),
-            const SizedBox(height: 16),
+            const SizedBox(height: 9),
             
             // Stats FutureBuilder
             FutureBuilder<Map<String, dynamic>>(
@@ -138,15 +138,15 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                     Row(
                       children: [
                         _buildStatCard('Created', '$created', icon: Icons.create_new_folder_outlined),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 7),
                         _buildStatCard('Guest', '$participated', icon: Icons.person_outline),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 7),
                     Row(
                       children: [
                         _buildStatCard('Reviews', '$reviews', icon: Icons.reviews_outlined),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 7),
                         _buildStatCard('Rating', rating > 0 ? rating.toStringAsFixed(1) : '-', icon: Icons.star_outline, isRating: true, rating: rating),
                       ],
                     ),
@@ -172,7 +172,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
           return _buildEmptyState(Icons.history, 'No past journeys');
         }
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(9),
           itemCount: journeys.length,
           itemBuilder: (context, index) => _buildSimpleJourneyCard(journeys[index]),
         );
@@ -218,18 +218,18 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         if (stats['totalReviews'] == 0) return const SizedBox();
 
         return Container(
-          padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(9),
+          margin: const EdgeInsets.all(9),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(9),
             border: Border.all(color: AppTheme.borderColor),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Review Categories', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 7),
               _buildLinearStat('Punctuality', stats['punctualityAvg'] as double),
               _buildLinearStat('Friendliness', stats['friendlinessAvg'] as double),
               _buildLinearStat('Communication', stats['communicationAvg'] as double),
@@ -243,22 +243,22 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
 
   Widget _buildLinearStat(String label, double rating) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: const TextStyle(fontSize: 12)),
+              Text(label, style: const TextStyle(fontSize: 8)),
               Text(rating.toStringAsFixed(1), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           LinearProgressIndicator(
             value: rating / 5.0,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: Colors.grey[160],
             valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentOrange),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(2),
           ),
         ],
       ),
@@ -267,11 +267,11 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
 
   Widget _buildReviewCard(ReviewModel review) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(7),
         border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
@@ -285,7 +285,7 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                 backgroundImage: review.reviewerAvatar != null ? NetworkImage(review.reviewerAvatar!) : null,
                 child: review.reviewerAvatar == null ? Text(review.reviewerName[0]) : null,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 7),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,8 +294,8 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
                       children: [
                         Text(review.reviewerName, style: const TextStyle(fontWeight: FontWeight.bold)),
                         if (review.isVerified) ...[
-                          const SizedBox(width: 4),
-                          const Icon(Icons.verified, size: 14, color: AppTheme.accentOrange),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.verified, size: 8, color: AppTheme.accentOrange),
                         ],
                       ],
                     ),
@@ -312,10 +312,10 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(review.comment, style: AppTheme.bodyRegular),
           if (review.photoUrls.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             SizedBox(
               height: 80,
               child: ListView.builder(
@@ -361,9 +361,16 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 60, color: AppTheme.textHint),
+            Icon(icon, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text(text, style: AppTheme.headingS.copyWith(color: AppTheme.textHint)),
+            Text(
+              text, 
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
           ],
         ),
       ),
@@ -376,8 +383,14 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,7 +403,12 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               child: Image.asset(
                 model.imageUrl.isNotEmpty ? model.imageUrl : 'assets/images/groceries.jpg',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image_not_supported)),
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[100],
+                  child: const Center(
+                    child: Icon(Icons.image_not_supported, color: Colors.grey),
+                  ),
+                ),
               ),
             ),
           ),
@@ -399,13 +417,33 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(model.title, style: AppTheme.headingS, maxLines: 1),
+                Text(
+                  model.title, 
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1F2937),
+                  ),
+                  maxLines: 1,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textSecondary),
+                    Icon(
+                      Icons.location_on_outlined, 
+                      size: 16, 
+                      color: Colors.grey[600],
+                    ),
                     const SizedBox(width: 4),
-                    Text(model.location, style: AppTheme.bodySmall),
+                    Expanded(
+                      child: Text(
+                        model.location, 
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],

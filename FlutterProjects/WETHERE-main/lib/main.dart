@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/login_page.dart';
 import 'screens/home_page.dart';
 import 'providers/journey_provider.dart';
@@ -78,14 +80,66 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return MaterialApp(
-            title: 'WeThere',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+          return ShadApp.custom(
             themeMode: themeProvider.themeMode,
-            // Use RootPage to handle authenticated vs unauthenticated state
-            home: const RootPage(),
+            darkTheme: ShadThemeData(
+              brightness: Brightness.dark,
+              colorScheme: const ShadSlateColorScheme.dark(),
+            ),
+            appBuilder: (context) {
+              final themeData = ShadTheme.of(context);
+              return MaterialApp(
+                title: 'WeThere',
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  fontFamily: themeData.textTheme.family,
+                  extensions: themeData.extensions,
+                  colorScheme: ColorScheme(
+                    brightness: themeData.brightness,
+                    primary: themeData.colorScheme.primary,
+                    onPrimary: themeData.colorScheme.primaryForeground,
+                    secondary: themeData.colorScheme.secondary,
+                    onSecondary: themeData.colorScheme.secondaryForeground,
+                    error: themeData.colorScheme.destructive,
+                    onError: themeData.colorScheme.destructiveForeground,
+                    surface: themeData.colorScheme.background,
+                    onSurface: themeData.colorScheme.foreground,
+                  ),
+                  scaffoldBackgroundColor: themeData.colorScheme.background,
+                  brightness: themeData.brightness,
+                  dividerTheme: DividerThemeData(
+                    color: themeData.colorScheme.border,
+                    thickness: 1,
+                  ),
+                  textSelectionTheme: TextSelectionThemeData(
+                    cursorColor: themeData.colorScheme.primary,
+                    selectionColor: themeData.colorScheme.selection,
+                    selectionHandleColor: themeData.colorScheme.primary,
+                  ),
+                  iconTheme: IconThemeData(
+                    size: 16,
+                    color: themeData.colorScheme.foreground,
+                  ),
+                  scrollbarTheme: ScrollbarThemeData(
+                    crossAxisMargin: 1,
+                    mainAxisMargin: 1,
+                    thickness: const WidgetStatePropertyAll(8),
+                    radius: const Radius.circular(999),
+                    thumbColor: WidgetStatePropertyAll(themeData.colorScheme.border),
+                  ),
+                ),
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                ],
+                builder: (context, child) {
+                  return ShadAppBuilder(child: child!);
+                },
+                // Use RootPage to handle authenticated vs unauthenticated state
+                home: const RootPage(),
+              );
+            },
           );
         },
       ),

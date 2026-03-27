@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:wethere/theme/app_theme.dart';
 import 'package:wethere/services/payment_service.dart';
 import 'package:wethere/screens/create_profile_page.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'package:wethere/screens/create_journey_page.dart';
 import 'package:provider/provider.dart';
@@ -262,8 +263,7 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'in front of the store',
       date: 'November 18',
       time: '17-19h',
-      compensationType: jm.CompensationType.hourlyPay,
-      hourlyRate: 15,
+      compensationType: jm.CompensationType.withoutRemuneration,
     ),
     // 2. Free Item - Concert
     Journey(
@@ -278,9 +278,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'main entrance',
       date: 'November 20',
       time: '19-23h',
-      compensationType: jm.CompensationType.freeItem,
-      freeItemDesc: 'Free Ticket',
-      freeItemEmoji: '🎫',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Free Ticket',
+      giftEmoji: '🎫',
     ),
     // 3. Covered Expense - Dinner
     Journey(
@@ -295,9 +295,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'inside near window',
       date: 'November 19',
       time: '19-21h',
-      compensationType: jm.CompensationType.coveredExpense,
-      coveredExpenseDesc: 'Dinner Covered',
-      coveredExpenseEmoji: '🍽️',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Dinner Covered',
+      giftEmoji: '🍽️',
     ),
     // 4. Companion's Choice - Movie
     Journey(
@@ -312,10 +312,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'theater lobby',
       date: 'November 21',
       time: '20-23h',
-      compensationType: jm.CompensationType.companionChoice,
-      hourlyRate: 20,
-      freeItemDesc: 'Free Movie',
-      freeItemEmoji: '🎬',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Free Movie',
+      giftEmoji: '🎬',
     ),
     // 5. Hourly Pay - Hiking
     Journey(
@@ -330,8 +329,7 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'parking lot entrance',
       date: 'November 20',
       time: '8-14h',
-      compensationType: jm.CompensationType.hourlyPay,
-      hourlyRate: 15,
+      compensationType: jm.CompensationType.withoutRemuneration,
     ),
     // 6. Covered Expense - Coffee
     Journey(
@@ -346,9 +344,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'inside near window',
       date: 'November 19',
       time: '10-12h',
-      compensationType: jm.CompensationType.coveredExpense,
-      coveredExpenseDesc: 'Coffee On Me',
-      coveredExpenseEmoji: '☕',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Coffee On Me',
+      giftEmoji: '☕',
     ),
     // 7. Free Item - Basketball
     Journey(
@@ -363,9 +361,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'gate 3 entrance',
       date: 'November 22',
       time: '19-22h',
-      compensationType: jm.CompensationType.freeItem,
-      freeItemDesc: 'Free Ticket',
-      freeItemEmoji: '🏀',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Free Ticket',
+      giftEmoji: '🏀',
     ),
     // 8. Hourly Pay - Gym
     Journey(
@@ -380,8 +378,7 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'front desk',
       date: 'November 18',
       time: '7-9h',
-      compensationType: jm.CompensationType.hourlyPay,
-      hourlyRate: 12,
+      compensationType: jm.CompensationType.withoutRemuneration,
     ),
     // 9. Companion's Choice - Brunch
     Journey(
@@ -396,10 +393,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'front entrance',
       date: 'November 24',
       time: '11-13h',
-      compensationType: jm.CompensationType.companionChoice,
-      hourlyRate: 25,
-      coveredExpenseDesc: 'Brunch',
-      coveredExpenseEmoji: '🥞',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Brunch',
+      giftEmoji: '🥞',
     ),
     // 10. Free Item - Museum
     Journey(
@@ -414,9 +410,9 @@ class _HomePageState extends State<HomePage> {
       meetingPoint: 'main lobby',
       date: 'November 23',
       time: '14-17h',
-      compensationType: jm.CompensationType.freeItem,
-      freeItemDesc: 'Free Entry',
-      freeItemEmoji: '🎨',
+      compensationType: jm.CompensationType.withGift,
+      giftDescription: 'Free Entry',
+      giftEmoji: '🎨',
     ),
   ];
 
@@ -522,11 +518,9 @@ class _HomePageState extends State<HomePage> {
       startTime: start,
       endTime: end,
       compensationType: m.compensationType,
-      hourlyRate: m.hourlyRate,
-      freeItemDesc: m.freeItemDesc,
-      freeItemEmoji: m.freeItemEmoji,
-      coveredExpenseDesc: m.coveredExpenseDesc,
-      coveredExpenseEmoji: m.coveredExpenseEmoji,
+      giftDescription: m.giftDescription,
+      giftEmoji: m.giftEmoji,
+      giftValue: m.giftValue,
       locationCoordinates: m.locationCoordinates,
     );
   }
@@ -534,50 +528,82 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Email verification banner
-            if (!_emailVerified)
-              MaterialBanner(
-                backgroundColor: AppTheme.accentOrange,
-                content: const Text(
-                  'Please verify your email to continue',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.accentOrange.withValues(alpha: 0.05),
+              Colors.white,
+              AppTheme.accentOrange.withValues(alpha: 0.03),
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Email verification banner
+              if (!_emailVerified)
+                ShadCard(
+                  backgroundColor: AppTheme.accentOrange,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.white),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Please verify your email to continue',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ShadButton(
+                          onPressed: () async {
+                            await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Verification email sent!')),
+                              );
+                            }
+                          },
+                          child: const Text('Resend', style: TextStyle(color: AppTheme.accentOrange)),
+                        ),
+                        const SizedBox(width: 8),
+                        ShadButton.outline(
+                          onPressed: _checkEmailVerification,
+                          child: const Text("I've verified", style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                leading: const Icon(Icons.warning_amber_rounded, color: Colors.white),
-                actions: [
-                  TextButton(
-                    onPressed: () async {
-                      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Verification email sent!')),
-                        );
-                      }
-                    },
-                    child: const Text('Resend', style: TextStyle(color: Colors.white)),
-                  ),
-                  TextButton(
-                    onPressed: _checkEmailVerification,
-                    child: const Text("I've verified", style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            Expanded(child: _buildCurrentTab()),
-          ],
+              Expanded(child: _buildCurrentTab()),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
       floatingActionButton: _currentTab == 0
-          ? FloatingActionButton(
-              onPressed: _showCreateJourneyDialog,
-              backgroundColor: AppTheme.accentOrange,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              tooltip: 'Create Journey',
-              child: const Icon(Icons.add, size: 28),
+          ? Container(
+              decoration: BoxDecoration(
+                color: AppTheme.accentOrange,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accentOrange.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ShadButton(
+                onPressed: _showCreateJourneyDialog,
+                child: const Icon(Icons.add, size: 28, color: Colors.white),
+              ),
             )
           : null,
     );
@@ -808,7 +834,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         ..._buildActiveFilterChips(),
                         const SizedBox(width: 8),
-                        TextButton(
+                        ShadButton.outline(
                           onPressed: _clearAllFilters,
                           child: Text('Clear All', style: TextStyle(color: AppTheme.accentOrange, fontSize: 12)),
                         ),
@@ -869,21 +895,21 @@ class _HomePageState extends State<HomePage> {
         if (!_selectedCompensationFilters.contains(j.compensationType)) return false;
       }
       
-      // Price Range Filter (only for hourly pay)
-      if (_priceRangeFilter != 'any' && j.compensationType == jm.CompensationType.hourlyPay) {
-        final rate = j.hourlyRate ?? 0;
+      // Price Range Filter (only for withGift)
+      if (_priceRangeFilter != 'any' && j.compensationType == jm.CompensationType.withGift) {
+        final value = j.giftValue ?? 0;
         switch (_priceRangeFilter) {
           case 'under15':
-            if (rate >= 15) return false;
+            if (value >= 15) return false;
             break;
           case '15to25':
-            if (rate < 15 || rate > 25) return false;
+            if (value < 15 || value > 25) return false;
             break;
           case '25to40':
-            if (rate < 25 || rate > 40) return false;
+            if (value < 25 || value > 40) return false;
             break;
           case 'over40':
-            if (rate <= 40) return false;
+            if (value <= 40) return false;
             break;
         }
       }
@@ -898,7 +924,7 @@ class _HomePageState extends State<HomePage> {
         filtered.sort((a, b) => a.date.compareTo(b.date));
         break;
       case 'highestPay':
-        filtered.sort((a, b) => (b.hourlyRate ?? 0).compareTo(a.hourlyRate ?? 0));
+        filtered.sort((a, b) => (b.giftValue ?? 0).compareTo(a.giftValue ?? 0));
         break;
       case 'nearest':
         // Prioritize filtered location, then user position
@@ -992,17 +1018,11 @@ class _HomePageState extends State<HomePage> {
     for (var type in _selectedCompensationFilters) {
       String label;
       switch (type) {
-        case jm.CompensationType.hourlyPay:
-          label = 'Hourly Pay';
+        case jm.CompensationType.withoutRemuneration:
+          label = 'No Remuneration';
           break;
-        case jm.CompensationType.freeItem:
-          label = 'Free Perks';
-          break;
-        case jm.CompensationType.coveredExpense:
-          label = 'Covered Expense';
-          break;
-        case jm.CompensationType.companionChoice:
-          label = 'Choice';
+        case jm.CompensationType.withGift:
+          label = 'With Gift';
           break;
       }
       chips.add(_buildFilterChip(label, () {
@@ -1118,13 +1138,9 @@ class _HomePageState extends State<HomePage> {
                   Text('Try adjusting your filters',
                       style: AppTheme.bodyRegular),
                   const SizedBox(height: 24),
-                  ElevatedButton(
+                  ShadButton(
                     onPressed: _clearAllFilters,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentOrange,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Clear All Filters'),
+                    child: const Text('Try adjusting your filters'),
                   ),
                 ]
               // No journeys at all
@@ -1140,15 +1156,15 @@ class _HomePageState extends State<HomePage> {
                       style: AppTheme.bodyRegular
                           .copyWith(color: AppTheme.textHint)),
                   const SizedBox(height: 28),
-                  ElevatedButton.icon(
+                  ShadButton(
                     onPressed: _showCreateJourneyDialog,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create Journey'),
-                    style: AppTheme.primaryButtonStyle.copyWith(
-                      padding: WidgetStateProperty.all(
-                        const EdgeInsets.symmetric(
-                            horizontal: 28, vertical: 14),
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.add, size: 18, color: Colors.white),
+                        const SizedBox(width: 8),
+                        const Text('Create Journey', style: TextStyle(color: Colors.white)),
+                      ],
                     ),
                   ),
                 ],
@@ -1220,10 +1236,8 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 16),
                       Text('💰 Compensation Type', style: AppTheme.labelMedium.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 12),
-                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.hourlyPay, 'Hourly Pay', setModalState),
-                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.freeItem, 'Free Perks', setModalState),
-                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.coveredExpense, 'Covered Expense', setModalState),
-                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.companionChoice, 'Companion\'s Choice', setModalState),
+                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.withoutRemuneration, 'No Remuneration', setModalState),
+                      _buildCompFilterCheckbox(tempCompFilters, jm.CompensationType.withGift, 'With Gift', setModalState),
                       
                       const SizedBox(height: 24),
                       const Divider(),
@@ -1261,7 +1275,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: ShadButton.outline(
                       onPressed: () {
                         setModalState(() {
                           tempLocController.clear();
@@ -1270,16 +1284,12 @@ class _HomePageState extends State<HomePage> {
                           tempDateFilter = 'any';
                         });
                       },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: AppTheme.primaryDark),
-                      ),
-                      child: Text('Clear All', style: TextStyle(color: AppTheme.primaryDark)),
+                      child: Text('Clear All'),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: ElevatedButton(
+                    child: ShadButton(
                       onPressed: () async {
                         // Handle Location Geocoding
                         GeoPoint? newCoords;
@@ -1322,11 +1332,6 @@ class _HomePageState extends State<HomePage> {
                           Navigator.pop(context);
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentOrange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
                       child: const Text('Apply Filters'),
                     ),
                   ),
@@ -1391,13 +1396,13 @@ class _HomePageState extends State<HomePage> {
           Icon(
             Icons.shopping_basket,
             size: 60,
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
           ),
           const SizedBox(height: 8),
           Text(
             title,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontSize: 12,
             ),
           ),
@@ -1407,263 +1412,298 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildJourneyCard(Journey journey) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Host Header
-          Row(
-            children: [
-              // Avatar
-              GestureDetector(
-                onTap: () {
-                  if (journey.hostUserId != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserProfilePage(
-                          userId: journey.hostUserId!,
-                          userName: journey.hostName,
-                          userAvatar: journey.hostAvatar,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.dividerColor,
-                    border: Border.all(color: AppTheme.borderColor),
-                    image: journey.hostAvatar != null
-                        ? DecorationImage(
-                            image: NetworkImage(journey.hostAvatar!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: journey.hostAvatar == null
-                      ? const Icon(Icons.person, color: AppTheme.textHint)
-                      : null,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Name
-              Expanded(
-                child: Text(
-                  journey.hostName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              // Menu
-              IconButton(
-                icon: const Icon(Icons.more_horiz),
-                onPressed: () {},
-                color: AppTheme.textHint,
-              ),
-            ],
-          ),
-
-          // Reviews and Rating
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                // Reviews
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Reviews',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textHint,
-                      ),
-                    ),
-                    Text(
-                      '${journey.reviews}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                // Rating
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Rating',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textHint,
-                      ),
-                    ),
-                    Row(
-                      children: List.generate(
-                        5,
-                        (i) => Icon(
-                          i < journey.rating.floor()
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: AppTheme.accentOrange,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Journey Card with Orange Border
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).colorScheme.onSurface, width: 1.5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image with Price Overlay
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(6),
-                      ),
-                      child: Container(
-                        height: 160,
-                        width: double.infinity,
-                        color: const Color(0xFF2A4A5C),
-                        child: journey.imageUrl.startsWith('http')
-                            ? Image.network(
-                                journey.imageUrl,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: ShadCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with Avatar and Menu
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  // Avatar
+                  GestureDetector(
+                    onTap: () {
+                      if (journey.hostUserId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserProfilePage(
+                              userId: journey.hostUserId!,
+                              userName: journey.hostName,
+                              userAvatar: journey.hostAvatar,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.dividerColor,
+                        border: Border.all(color: AppTheme.borderColor),
+                        image: journey.hostAvatar != null
+                            ? DecorationImage(
+                                image: NetworkImage(journey.hostAvatar!),
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
                               )
-                            : Image.asset(
-                                journey.imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
-                              ),
+                            : null,
                       ),
+                      child: journey.hostAvatar == null
+                          ? const Icon(Icons.person, color: AppTheme.textHint)
+                          : null,
                     ),
-                    // Like Button
-                     Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (journey.firestoreId != null) {
-                            context.read<JourneyProvider>().toggleLike(journey.firestoreId!);
-                          }
-                        },
+                  ),
+                  const SizedBox(width: 12),
+                  // Name and Rating
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          journey.hostName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              '${journey.reviews} reviews',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textHint,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  i < journey.rating.floor()
+                                      ? Icons.star
+                                      : Icons.star_border,
+                                  color: AppTheme.accentOrange,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Menu
+                  IconButton(
+                    icon: const Icon(Icons.more_horiz),
+                    onPressed: () {},
+                    color: AppTheme.textHint,
+                  ),
+                ],
+              ),
+            ),
+
+            // Reviews and Rating
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  // Reviews
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reviews',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textHint,
+                        ),
+                      ),
+                      Text(
+                        '${journey.reviews}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  // Rating
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Rating',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textHint,
+                        ),
+                      ),
+                      Row(
+                        children: List.generate(
+                          5,
+                          (i) => Icon(
+                            i < journey.rating.floor()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: AppTheme.accentOrange,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Journey Card with Orange Border
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).colorScheme.onSurface, width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image with Price Overlay
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(6),
+                        ),
                         child: Container(
-                          padding: const EdgeInsets.all(6),
+                          height: 160,
+                          width: double.infinity,
+                          color: const Color(0xFF2A4A5C),
+                          child: journey.imageUrl.startsWith('http')
+                              ? Image.network(
+                                  journey.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
+                                )
+                              : Image.asset(
+                                  journey.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
+                                ),
+                        ),
+                      ),
+                      // Like Button
+                       Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (journey.firestoreId != null) {
+                              context.read<JourneyProvider>().toggleLike(journey.firestoreId!);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              _likedJourneyIds.contains(journey.firestoreId) ? Icons.favorite : Icons.favorite_border,
+                              color: _likedJourneyIds.contains(journey.firestoreId) ? Colors.red : AppTheme.textSecondary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Compensation Badge Overlay
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                            color: journey.badgeColor,
+                            borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withValues(alpha: 0.2),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            _likedJourneyIds.contains(journey.firestoreId) ? Icons.favorite : Icons.favorite_border,
-                            color: _likedJourneyIds.contains(journey.firestoreId) ? Colors.red : AppTheme.textSecondary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Compensation Badge Overlay
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: journey.badgeColor,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                          child: Text(
+                            journey.badgeText,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                          ],
-                        ),
-                        child: Text(
-                          journey.badgeText,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                // Description
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                        height: 1.4,
-                        fontFamily: 'Inter',
-                      ),
-                      children: [
-                        TextSpan(text: '${journey.title}. Location: '),
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.middle,
-                          child: GestureDetector(
-                            onTap: () => _openMaps(journey.location),
-                            child: Text(
-                              journey.location,
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                                fontWeight: FontWeight.bold,
+                  // Description
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                          height: 1.4,
+                          fontFamily: 'Inter',
+                        ),
+                        children: [
+                          TextSpan(text: '${journey.title}. Location: '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: GestureDetector(
+                              onTap: () => _openMaps(journey.location),
+                              child: Text(
+                                journey.location,
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        TextSpan(text: ' Meet: ${journey.meetingPoint}. Date: ${journey.date}, ${journey.time}'),
-                      ],
+                          TextSpan(text: ' Meet: ${journey.meetingPoint}. Date: ${journey.date}, ${journey.time}'),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Action Button
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                  child: _buildJourneyActionButton(context, journey),
-                ),
-              ],
+                  // Action Button
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: _buildJourneyActionButton(context, journey),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1688,20 +1728,14 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           children: [
             Expanded(
-              child: OutlinedButton(
+              child: ShadButton.outline(
                 onPressed: () => _showApplicantsDialog(context, journey),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppTheme.accentOrange), // Changed to accent color to indicate clickable
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
                 child: Text(
-                  'YOUR JOURNEY', // Consider changing to "VIEW APPLICANTS" if clearer, but user said "make 'your Journey' a button"
+                  'YOUR JOURNEY',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.accentOrange, // Changed color
+                    color: AppTheme.accentOrange,
                     letterSpacing: 1,
                   ),
                 ),
@@ -1739,15 +1773,13 @@ class _HomePageState extends State<HomePage> {
                         'Are you sure you want to delete this journey? This action cannot be undone and all applications will be removed.',
                       ),
                       actions: [
-                        TextButton(
+                        ShadButton.outline(
                           onPressed: () => Navigator.pop(ctx, false),
                           child: const Text('Cancel'),
                         ),
-                        ElevatedButton(
+                        ShadButton(
                           onPressed: () => Navigator.pop(ctx, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
+                          backgroundColor: Colors.red,
                           child: const Text('Delete'),
                         ),
                       ],
@@ -1800,7 +1832,7 @@ class _HomePageState extends State<HomePage> {
         return SizedBox(
           width: double.infinity,
           height: 44,
-          child: ElevatedButton.icon(
+          child: ShadButton(
             onPressed: isChatAvailable ? () async {
               // Open Chat with Host
               if (journey.firestoreId != null && journey.hostUserId != null) {
@@ -1841,22 +1873,23 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            label: Text(
-              isChatAvailable ? 'ACCEPTED' : 'ACCEPTED (Chat in ${hoursUntilStart}h)',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  isChatAvailable ? 'ACCEPTED' : 'ACCEPTED (Chat in ${hoursUntilStart}h)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isChatAvailable ? Colors.green : Colors.grey,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
+            backgroundColor: isChatAvailable ? Colors.green : Colors.grey,
           ),
         );
       }
@@ -1865,25 +1898,25 @@ class _HomePageState extends State<HomePage> {
       return SizedBox(
         width: double.infinity,
         height: 44,
-        child: ElevatedButton.icon(
+        child: ShadButton(
           onPressed: null, // Disabled
-          icon: const Icon(Icons.check, color: Colors.white),
-          label: const Text(
-            'APPLIED',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check, color: Colors.white),
+              const SizedBox(width: 8),
+              const Text(
+                'APPLIED',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green, // Visual indicator even if disabled
-            disabledBackgroundColor: Colors.green.withValues(alpha: 0.7),
-            disabledForegroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25),
-            ),
-          ),
+          backgroundColor: Colors.green,
         ),
       );
     }
@@ -1914,36 +1947,6 @@ class _HomePageState extends State<HomePage> {
         }
       }
 
-      // If not a participant, just show "SEE REVIEWS" (generic)
-      if (!isParticipant) {
-         return SizedBox(
-           width: double.infinity,
-           height: 44,
-           child: OutlinedButton(
-             onPressed: () async {
-                final reviewService = ReviewService();
-                final review = await reviewService.getReviewForJourney(journey.firestoreId!);
-                
-                if (context.mounted) {
-                  if (review != null) {
-                    _showReviewDialog(context, review);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('No reviews yet.'))
-                    );
-                  }
-                }
-             },
-             style: OutlinedButton.styleFrom(
-               side: const BorderSide(color: AppTheme.primaryDark),
-               foregroundColor: AppTheme.primaryDark,
-               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-             ),
-             child: const Text('SEE REVIEWS', style: TextStyle(fontWeight: FontWeight.bold)),
-           )
-         );
-      }
-
       // If Participant, check if they have already reviewed using FutureBuilder
       if (revieweeId.isNotEmpty) {
         return FutureBuilder<ReviewModel?>(
@@ -1964,15 +1967,11 @@ class _HomePageState extends State<HomePage> {
                return SizedBox(
                  width: double.infinity,
                  height: 44,
-                 child: ElevatedButton(
+                 child: ShadButton(
                    onPressed: () {
                      _showReviewDialog(context, existingReview);
                    },
-                   style: ElevatedButton.styleFrom(
-                     backgroundColor: Colors.grey,
-                     foregroundColor: Colors.white,
-                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                   ),
+                   backgroundColor: Colors.grey,
                    child: const Text('REVIEW SUBMITTED', style: TextStyle(
                      fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1
                    )),
@@ -1982,13 +1981,8 @@ class _HomePageState extends State<HomePage> {
                return SizedBox(
                  width: double.infinity,
                  height: 44,
-                 child: ElevatedButton(
+                 child: ShadButton(
                    onPressed: () => _openReviewDialog(context, journey, revieweeName, revieweeId),
-                   style: ElevatedButton.styleFrom(
-                     backgroundColor: AppTheme.primaryDark,
-                     foregroundColor: Colors.white,
-                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                   ),
                    child: const Text('WRITE REVIEW', style: TextStyle(
                      fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1
                    )),
@@ -2005,7 +1999,7 @@ class _HomePageState extends State<HomePage> {
     return SizedBox(
       width: double.infinity,
       height: 44,
-      child: ElevatedButton(
+      child: ShadButton(
         onPressed: () {
           // Check if it's a demo journey
           if (journey.firestoreId == null) {
@@ -2036,20 +2030,13 @@ class _HomePageState extends State<HomePage> {
             );
           }
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.accentOrange,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-        ),
         child: const Text(
           'APPLY',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             letterSpacing: 1,
+            color: Colors.white,
           ),
         ),
       ),
@@ -2119,7 +2106,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))
+          ShadButton.outline(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))
         ],
       ),
     );
@@ -2233,19 +2220,23 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('My Journeys', style: AppTheme.headingL),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Navigate to create journey screen
-                  _showCreateJourneyDialog();
-                },
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Create'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentOrange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.accentOrange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: ShadButton(
+                  onPressed: () {
+                    // TODO: Navigate to create journey screen
+                    _showCreateJourneyDialog();
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.add, size: 18, color: Colors.white),
+                      const SizedBox(width: 8),
+                      const Text('Create', style: TextStyle(color: Colors.white)),
+                    ],
                   ),
                 ),
               ),
@@ -2650,14 +2641,9 @@ class _HomePageState extends State<HomePage> {
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
+              ShadButton(
                 onPressed: onAction,
-                style: AppTheme.primaryButtonStyle.copyWith(
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  ),
-                ),
-                child: Text(actionLabel, style: AppTheme.buttonText),
+                child: Text(actionLabel, style: AppTheme.labelMedium),
               ),
             ],
           ],
@@ -2780,14 +2766,14 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           actions: [
-            TextButton(
+            ShadButton.outline(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
                 'Cancel',
                 style: TextStyle(color: AppTheme.textSecondary),
               ),
             ),
-            ElevatedButton(
+            ShadButton(
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 final result = await Navigator.push(
@@ -2803,7 +2789,6 @@ class _HomePageState extends State<HomePage> {
                   setState(() {});
                 }
               },
-              style: AppTheme.primaryButtonStyle,
               child: const Text('Complete Profile'),
             ),
           ],
@@ -2824,217 +2809,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Handle apply button - show reward selection for CompanionChoice journeys
+  // Handle apply button - simplified for new compensation system
   void _handleApplyJourney(BuildContext context, jm.JourneyModel journey) {
-    if (journey.compensationType == jm.CompensationType.companionChoice) {
-      // Show reward selection modal for Companion's Choice journeys
-      _showRewardSelectionDialog(context, journey);
-    } else {
-      // For other journey types, apply directly
-      _submitApplication(context, journey, null);
-    }
+    // Direct application - no reward selection needed with simplified system
+    _submitApplication(context, journey, null);
   }
-
-  // Show reward selection dialog for Companion's Choice journeys
-  void _showRewardSelectionDialog(BuildContext context, jm.JourneyModel journey) {
-    String? selectedOption; // 'hourly' or 'freeItem'
-    
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Choose Your Reward',
-                    style: AppTheme.headingM.copyWith(fontSize: 20),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'The host is offering two options.\nSelect the one you prefer:',
-                      style: AppTheme.bodyRegular.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Option A: Hourly Pay
-                    _buildRewardOption(
-                      isSelected: selectedOption == 'hourly',
-                      onTap: () {
-                        setDialogState(() => selectedOption = 'hourly');
-                      },
-                      title: '\$${journey.hourlyRate ?? 0}/hour',
-                      subtitle: 'Estimated total based on journey duration',
-                      icon: Icons.attach_money,
-                      color: const Color(0xFFFF6B35), // Orange
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Option B: Free Item/Covered Expense
-                    _buildRewardOption(
-                      isSelected: selectedOption == 'freeItem',
-                      onTap: () {
-                        setDialogState(() => selectedOption = 'freeItem');
-                      },
-                      title: '${journey.freeItemEmoji ?? journey.coveredExpenseEmoji ?? '🎁'} ${journey.freeItemDesc ?? journey.coveredExpenseDesc ?? 'Free Item'}',
-                      subtitle: 'Provided by the host',
-                      icon: Icons.card_giftcard,
-                      color: const Color(0xFF4CAF50), // Green
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    Text(
-                      'Note: You must select an option before applying.',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textHint,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: selectedOption == null
-                      ? null
-                      : () {
-                          Navigator.of(dialogContext).pop();
-                          _submitApplication(context, journey, selectedOption);
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentOrange,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Continue to Apply'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Build a reward option radio button
-  Widget _buildRewardOption({
-    required bool isSelected,
-    required VoidCallback onTap,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? color : AppTheme.borderColor,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? color : AppTheme.textHint,
-                  width: 2,
-                ),
-                color: isSelected ? color : Colors.transparent,
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Icon(icon, color: color, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTheme.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? color : AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textHint,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Submit the application (with optional reward choice)
-  // void _submitApplication(BuildContext context, Journey journey, String? rewardChoice) {
-  //   String message = 'Applied to: ${journey.title}';
-  //   if (rewardChoice != null) {
-  //     String choiceLabel = rewardChoice == 'hourly' 
-  //         ? '\$${journey.hourlyRate}/hour' 
-  //         : (journey.freeItemDesc ?? journey.coveredExpenseDesc ?? 'Free Item');
-  //     message = 'Applied to: ${journey.title}\nReward chosen: $choiceLabel';
-  //   }
-    
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(message),
-  //       duration: const Duration(seconds: 3),
-  //       backgroundColor: AppTheme.primaryDark,
-  //     ),
-  //   );
-  // }
 
   Future<void> _submitApplication(
     BuildContext context,
@@ -3050,6 +2829,7 @@ class _HomePageState extends State<HomePage> {
         throw Exception('You must be logged in to apply');
       }
 
+      // Create application
       await applicationProvider.applyToJourney(
         journey: journey,
         userId: currentUser.uid,
@@ -3057,32 +2837,26 @@ class _HomePageState extends State<HomePage> {
         rewardChoice: rewardChoice,
       );
 
-      String message = 'Applied to: ${journey.title}';
-      if (rewardChoice != null) {
-        final choiceLabel = rewardChoice == 'hourly'
-            ? '\$${journey.hourlyRate}/hour'
-            : (journey.freeItemDesc ??
-                journey.coveredExpenseDesc ??
-                'Free Item');
-        message += '\nReward chosen: $choiceLabel';
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully applied to: ${journey.title}'),
+            duration: const Duration(seconds: 3),
+            backgroundColor: AppTheme.primaryDark,
+          ),
+        );
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppTheme.primaryDark,
-        ),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to apply: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
-
 
   Widget _buildInboxTab() {
     final chatService = ChatService();
@@ -3416,7 +3190,7 @@ class _HomePageState extends State<HomePage> {
               if (!isCompleted) ...[
                 const SizedBox(height: 16),
                 Center(
-                  child: ElevatedButton(
+                  child: ShadButton(
                     onPressed: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
@@ -3424,8 +3198,8 @@ class _HomePageState extends State<HomePage> {
                           title: const Text('Complete Journey?'),
                           content: const Text('This will move the journey to "Past" and allow participants to review each other. This action cannot be undone.'),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+                            ShadButton.outline(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                            ShadButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
                           ],
                         ),
                       );
@@ -3437,12 +3211,6 @@ class _HomePageState extends State<HomePage> {
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                    ),
                     child: const Text('Mark as Complete', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
@@ -3464,36 +3232,59 @@ class _HomePageState extends State<HomePage> {
         
         return SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 // Profile header
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.dividerColor,
-                    border: Border.all(color: AppTheme.borderColor, width: 2),
-                    image: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) != null
-                        ? DecorationImage(
-                            image: NetworkImage(userData['photo'] ?? FirebaseAuth.instance.currentUser!.photoURL!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
+                ShadCard(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.surface,
+                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 42,
+                            backgroundColor: AppTheme.accentOrange.withValues(alpha: 0.1),
+                            backgroundImage: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) != null
+                                ? NetworkImage(userData['photo'] ?? FirebaseAuth.instance.currentUser!.photoURL!)
+                                : null,
+                            child: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) == null
+                                ? Icon(Icons.person, size: 42, color: AppTheme.accentOrange)
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            userData['firstName'] != null ? '${userData['firstName']} ${userData['lastName'] ?? ''}' : (FirebaseAuth.instance.currentUser?.displayName ?? 'Your Profile'), 
+                            style: AppTheme.headingM.copyWith(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.email ?? 'Complete your profile',
+                            style: AppTheme.bodySmall.copyWith(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) == null
-                      ? const Icon(Icons.person, size: 50, color: AppTheme.textHint)
-                      : null,
                 ),
-                const SizedBox(height: 16),
-                Text(userData['firstName'] != null ? '${userData['firstName']} ${userData['lastName'] ?? ''}' : (FirebaseAuth.instance.currentUser?.displayName ?? 'Your Profile'), style: AppTheme.headingM),
-                const SizedBox(height: 8),
-                Text(
-                  FirebaseAuth.instance.currentUser?.email ?? 'Complete your profile',
-                  style: AppTheme.bodySmall,
-                ),
-                const SizedBox(height: 32),
+
+                const SizedBox(height: 20),
 
                 // Stats Row with FutureBuilder
                 if (userId != null)
@@ -3529,7 +3320,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 // Settings
                 _buildSettingsTile(
@@ -3805,7 +3596,7 @@ class _HomePageState extends State<HomePage> {
                             onTap: () => _handleDeactivateAccount(),
                             isDanger: true,
                           ),
-                          Divider(height: 1, color: Colors.red.withOpacity(0.1)),
+                          Divider(height: 1, color: Colors.red.withValues(alpha: 0.1)),
                           _buildModernSettingsTile(
                             'Delete Account',
                             Icons.delete_forever_outlined,
@@ -3874,7 +3665,7 @@ class _HomePageState extends State<HomePage> {
                      ),
                    ),
                    const SizedBox(height: 16),
-                   ElevatedButton.icon(
+                   ShadButton(
                      onPressed: () {
                        // In a real app, this would use Stripe to add a new card
                        PaymentService().makePayment(
@@ -3883,13 +3674,13 @@ class _HomePageState extends State<HomePage> {
                          currency: 'usd'
                        );
                      },
-                     icon: const Icon(Icons.add),
-                     label: const Text('Add New Card'),
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: AppTheme.accentOrange,
-                       foregroundColor: Colors.white,
-                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                       padding: const EdgeInsets.symmetric(vertical: 16),
+                     child: Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         const Icon(Icons.add),
+                         const SizedBox(width: 8),
+                         const Text('Add New Card'),
+                       ],
                      ),
                    ),
                 ],
@@ -3924,8 +3715,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
+          ShadButton.outline(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          ShadButton(
             onPressed: () {
               Navigator.pop(context);
               final amountStr = controller.text;
@@ -3999,11 +3790,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          TextButton(
+          ShadButton.outline(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          ShadButton(
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
                 try {
@@ -4129,7 +3920,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          ShadButton.outline(onPressed: () => Navigator.pop(context), child: const Text('Close')),
         ],
       ),
     );
@@ -4142,10 +3933,9 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Deactivate Account?'),
         content: const Text('Your profile will be hidden from other users. You can reactivate by logging in again.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(
+          ShadButton.outline(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ShadButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Deactivate'),
           ),
         ],
@@ -4170,10 +3960,9 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Delete Account Permanently?'),
         content: const Text('This action is IRREVERSIBLE. All your data, journeys, and applications will be permanently deleted.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          ElevatedButton(
+          ShadButton.outline(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ShadButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('DELETE PERMANENTLY'),
           ),
         ],
@@ -4243,11 +4032,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          TextButton(
+          ShadButton.outline(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          ShadButton(
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
                 try {
@@ -4320,11 +4109,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         actions: [
-          TextButton(
+          ShadButton.outline(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          ShadButton(
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
                 try {
@@ -4479,7 +4268,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          TextButton(
+          ShadButton.outline(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
@@ -4507,20 +4296,20 @@ class _HomePageState extends State<HomePage> {
     return Container(
       decoration: BoxDecoration(
         color: isDark 
-            ? (isDanger ? Colors.red.withOpacity(0.05) : Colors.white.withOpacity(0.05))
-            : (isDanger ? Colors.red.withOpacity(0.03) : Colors.white),
+            ? (isDanger ? Colors.red.withAlpha(13) : Colors.white.withAlpha(13))
+            : (isDanger ? Colors.red.withAlpha(8) : Colors.white.withAlpha(8)),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark 
-              ? (isDanger ? Colors.red.withOpacity(0.2) : Colors.white10)
-              : (isDanger ? Colors.red.withOpacity(0.1) : AppTheme.borderColor),
+              ? (isDanger ? Colors.red.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.1))
+              : (isDanger ? Colors.red.withValues(alpha: 0.1) : AppTheme.borderColor),
           width: 1,
         ),
         boxShadow: isDark 
             ? [] 
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -4542,8 +4331,8 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDanger 
-                ? Colors.red.withOpacity(0.1) 
-                : (isDark ? Colors.white.withOpacity(0.05) : AppTheme.dividerColor),
+                ? Colors.red.withAlpha(26) 
+                : (isDark ? Colors.white.withAlpha(13) : AppTheme.dividerColor),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -4563,74 +4352,147 @@ class _HomePageState extends State<HomePage> {
         trailing: Icon(
           Icons.chevron_right, 
           size: 18, 
-          color: isDanger ? Colors.red.withOpacity(0.5) : (isDark ? Colors.white30 : AppTheme.textHint),
+          color: isDanger ? Colors.red.withValues(alpha: 0.5) : (isDark ? Colors.white30 : AppTheme.textHint),
         ),
       ),
     );
   }
 
   Widget _buildStatCard(String label, String value, {IconData? icon, bool isRating = false, double rating = 0.0}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF161B22) : AppTheme.dividerColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isDark ? const Color(0xFF30363D) : AppTheme.borderColor),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        child: Column(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 20, color: AppTheme.accentOrange.withOpacity(0.7)),
-              const SizedBox(height: 8),
-            ],
-            if (isRating && rating > 0) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (int i = 1; i <= 5; i++)
-                    Icon(
-                      i <= rating.floor() 
-                          ? Icons.star 
-                          : (i <= rating.ceil() && rating % 1 != 0 ? Icons.star_half : Icons.star_border),
-                      color: Colors.amber,
-                      size: 14,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 4),
-            ],
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.accentOrange,
-              ),
+      child: ShadCard(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            const SizedBox(height: 4),
-            Text(label, style: AppTheme.bodySmall.copyWith(fontSize: 11)),
-          ],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+            child: Column(
+              children: [
+                if (icon != null) ...[
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, size: 16, color: AppTheme.accentOrange),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (isRating && rating > 0) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (int i = 1; i <= 5; i++)
+                        Icon(
+                          i <= rating.floor() 
+                              ? Icons.star 
+                              : (i <= rating.ceil() && rating % 1 != 0 ? Icons.star_half : Icons.star_border),
+                          color: Colors.amber,
+                          size: 12,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.accentOrange,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label, 
+                  style: AppTheme.bodySmall.copyWith(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSettingsTile(String title, IconData icon, {VoidCallback? onTap}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? const Color(0xFF30363D) : AppTheme.borderColor),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: isDark ? AppTheme.primaryLight : AppTheme.primaryDark),
-        title: Text(title, style: AppTheme.labelMedium),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap ?? () {},
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ShadCard(
+        child: InkWell(
+          onTap: onTap ?? () {},
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.accentOrange.withValues(alpha: 0.15),
+                        AppTheme.accentOrange.withValues(alpha: 0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppTheme.accentOrange.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    icon, 
+                    size: 20, 
+                    color: AppTheme.accentOrange,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title, 
+                    style: AppTheme.labelMedium.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios, 
+                    size: 12, 
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -4722,13 +4584,13 @@ class _SupportChatDialogState extends State<SupportChatDialog> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isUser ? AppTheme.accentOrange.withOpacity(0.1) : Colors.white,
+                                color: isUser ? AppTheme.accentOrange.withValues(alpha: 0.1) : Colors.white,
                                 borderRadius: BorderRadius.circular(12).copyWith(
                                   bottomRight: isUser ? Radius.zero : const Radius.circular(12),
                                   bottomLeft: isUser ? const Radius.circular(12) : Radius.zero,
                                 ),
                                 border: Border.all(
-                                  color: isUser ? AppTheme.accentOrange.withOpacity(0.3) : AppTheme.borderColor,
+                                  color: isUser ? AppTheme.accentOrange.withValues(alpha: 0.3) : AppTheme.borderColor,
                                 ),
                               ),
                               child: Text(
@@ -4782,7 +4644,7 @@ class _SupportChatDialogState extends State<SupportChatDialog> {
         ),
       ),
       actions: [
-        TextButton(
+        ShadButton.outline(
           onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
         ),
@@ -4812,11 +4674,9 @@ class Journey {
   
   // Compensation fields
   final jm.CompensationType compensationType;
-  final int? hourlyRate;           // For hourlyPay and companionChoice
-  final String? freeItemDesc;      // For freeItem and companionChoice (e.g., "Concert ticket")
-  final String? freeItemEmoji;     // Emoji for badge (e.g., "🎫")
-  final String? coveredExpenseDesc; // For coveredExpense (e.g., "Dinner up to $50")
-  final String? coveredExpenseEmoji; // Emoji for badge (e.g., "🍽️")
+  final String? giftDescription;   // For withGift (e.g., "$20", "Coffee gift card")
+  final String? giftEmoji;         // Emoji for badge (e.g., "🎁", "💰")
+  final double? giftValue;        // Estimated monetary value
 
   final DateTime? startTime;
   final GeoPoint? locationCoordinates;
@@ -4838,39 +4698,29 @@ class Journey {
     this.startTime,
     this.endTime,
     required this.compensationType,
-    this.hourlyRate,
-    this.freeItemDesc,
-    this.freeItemEmoji,
-    this.coveredExpenseDesc,
-    this.coveredExpenseEmoji,
+    this.giftDescription,
+    this.giftEmoji,
+    this.giftValue,
     this.locationCoordinates,
   });
 
   // Get badge text based on compensation type
   String get badgeText {
     switch (compensationType) {
-      case jm.CompensationType.hourlyPay:
-        return '\$${hourlyRate ?? 0}/h';
-      case jm.CompensationType.freeItem:
-        return '${freeItemEmoji ?? '🎫'} ${freeItemDesc ?? 'Free'}';
-      case jm.CompensationType.coveredExpense:
-        return '${coveredExpenseEmoji ?? '🍽️'} ${coveredExpenseDesc ?? 'Covered'}';
-      case jm.CompensationType.companionChoice:
-        return '\$${hourlyRate ?? 0}/h OR ${freeItemEmoji ?? '🎫'} Free';
+      case jm.CompensationType.withoutRemuneration:
+        return 'No Remuneration';
+      case jm.CompensationType.withGift:
+        return '${giftEmoji ?? '🎁'} ${giftDescription ?? 'Gift'}';
     }
   }
 
   // Get badge color based on compensation type
   Color get badgeColor {
     switch (compensationType) {
-      case jm.CompensationType.hourlyPay:
+      case jm.CompensationType.withoutRemuneration:
+        return const Color(0xFF9E9E9E); // Gray
+      case jm.CompensationType.withGift:
         return const Color(0xFFFF6B35); // Orange
-      case jm.CompensationType.freeItem:
-        return const Color(0xFF4CAF50); // Green
-      case jm.CompensationType.coveredExpense:
-        return const Color(0xFF26A69A); // Teal
-      case jm.CompensationType.companionChoice:
-        return const Color(0xFF7C4DFF); // Purple
     }
   }
 }

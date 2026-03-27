@@ -49,10 +49,19 @@ class _ChatPageState extends State<ChatPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.otherUserName, style: AppTheme.headingS),
+            Text(
+              widget.otherUserName, 
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
             Text(
               widget.journeyTitle,
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ],

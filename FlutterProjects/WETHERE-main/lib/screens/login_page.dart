@@ -6,6 +6,7 @@ import 'package:wethere/theme/app_theme.dart';
 import 'package:wethere/screens/password_login.dart';
 import 'package:wethere/screens/home_page.dart';
 import 'package:wethere/screens/create_account.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -63,108 +64,217 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLg,
-                ),
-                child: Column(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.accentOrange.withValues(alpha: 0.08),
+              AppTheme.primaryDark.withValues(alpha: 0.05),
+              Colors.white,
+              AppTheme.accentOrange.withValues(alpha: 0.06),
+            ],
+            stops: const [0.0, 0.3, 0.7, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width > 600 ? AppTheme.spacingXl * 2 : AppTheme.spacingLg,
+              vertical: AppTheme.spacingLg,
+            ),
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+
+                // Playful floating images
+                Stack(
                   children: [
-                    const Spacer(flex: 2),
-
-                    // Hero image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                      child: Image.asset(
-                        'assets/images/welcome_hero.png',
-                        width: 280,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingXl),
-
-                    // App name
-                    Text(
-                      'Togetherness',
-                      style: AppTheme.headlineXL.copyWith(
-                        color: AppTheme.accentOrange,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacingSm),
-
-                    // Tagline
-                    Text(
-                      'Ready to travel together?',
-                      style: AppTheme.bodyLarge.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const Spacer(flex: 2),
-
-                    // Create an account button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const CreateAccountPage(),
-                            ),
-                          );
-                        },
-                        style: AppTheme.primaryButtonStyle,
-                        child: const Text(
-                          'Create an account',
-                          style: AppTheme.buttonText,
+                    // Background circles
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                          border: Border.all(color: AppTheme.accentOrange.withValues(alpha: 0.3), width: 2),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/welcome_hero.png',
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingMd),
-
-                    // Log in button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const PasswordLoginPage(),
-                            ),
-                          );
-                        },
-                        style: AppTheme.secondaryButtonStyle,
-                        child: const Text(
-                          'Log in',
-                          style: AppTheme.buttonText,
+                    Positioned(
+                      top: 20,
+                      right: 15,
+                      child: Container(
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/welcome_hero.png',
+                            width: 41,
+                            height: 41,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingMd),
-
-                    const Spacer(flex: 1),
-
-                    // Footer
-                    Text(
-                      'by WeThere',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textHint,
-                        letterSpacing: 1,
+                    Positioned(
+                      bottom: 15,
+                      left: 20,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.green.withValues(alpha: 0.1),
+                          border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 2),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/welcome_hero.png',
+                            width: 46,
+                            height: 46,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingLg),
+                    Positioned(
+                      bottom: 25,
+                      right: 15,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.purple.withValues(alpha: 0.1),
+                          border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 2),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/welcome_hero.png',
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Central hero card
+                    Center(
+                      child: ShadCard(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                          child: Image.asset(
+                            'assets/images/welcome_hero.png',
+                            width: MediaQuery.of(context).size.width > 600 ? 180 : 140,
+                            height: MediaQuery.of(context).size.width > 600 ? 130 : 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
+                const SizedBox(height: AppTheme.spacingXl),
+
+                // App name with shadcn typography
+                Text(
+                  'Togetherness',
+                  style: ShadTheme.of(context).textTheme.h1.copyWith(
+                    color: AppTheme.accentOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: MediaQuery.of(context).size.width > 600 ? 48 : 36,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingSm),
+
+                // Tagline with shadcn typography
+                Text(
+                  'Ready to travel together?',
+                  style: ShadTheme.of(context).textTheme.muted.copyWith(
+                    fontSize: MediaQuery.of(context).size.width > 600 ? 20 : 18,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const Spacer(flex: 2),
+
+                // Modern Shadcn Create Account Button
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentOrange,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  width: double.infinity,
+                  child: ShadButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CreateAccountPage(),
+                        ),
+                      );
+                    },
+                    child: const Text('Create Account', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingMd),
+
+                // Modern Shadcn Login Button with orange background
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentOrange,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  width: double.infinity,
+                  child: ShadButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PasswordLoginPage(),
+                        ),
+                      );
+                    },
+                    child: const Text('Log in', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+
+                const Spacer(flex: 1),
+
+                // Footer
+                Text(
+                  'by WeThere',
+                  style: ShadTheme.of(context).textTheme.muted.copyWith(
+                    color: AppTheme.textHint,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spacingLg),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }
