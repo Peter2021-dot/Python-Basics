@@ -20,15 +20,14 @@ class WelcomePage extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              AppTheme.accentOrange.withOpacity(0.08),
-              AppTheme.primaryDark.withOpacity(0.05),
               Colors.white,
-              AppTheme.accentOrange.withOpacity(0.06),
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
             ],
-            stops: const [0.0, 0.3, 0.7, 1.0],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: Center(

@@ -82,10 +82,23 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           style: AppTheme.headingM.copyWith(color: Theme.of(context).colorScheme.primary),
         ),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppTheme.spacingLg),
+            child: Column(
             children: [
               const SizedBox(height: AppTheme.spacingMd),
 

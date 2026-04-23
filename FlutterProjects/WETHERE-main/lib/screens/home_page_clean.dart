@@ -1,35 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:async';
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:wethere/theme/app_theme.dart';
-import 'package:wethere/services/payment_service.dart';
-import 'package:wethere/screens/create_profile_page.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'package:wethere/screens/create_journey_page.dart';
 import 'package:provider/provider.dart';
 import 'package:wethere/providers/journey_provider.dart';
-import 'package:wethere/providers/application_provider.dart';
 import 'package:wethere/models/journey_model.dart' as jm;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
-import 'dart:async';
-import 'package:wethere/screens/chat_page.dart';
-import 'package:wethere/screens/review_dialog.dart';
-import 'package:wethere/services/chat_service.dart';
-import 'package:wethere/services/review_service.dart';
-import 'package:wethere/models/review_model.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:wethere/screens/login_page.dart';
-import 'package:wethere/screens/user_profile_page.dart';
+import 'package:wethere/screens/create_profile_page.dart';
+import 'package:wethere/theme/app_theme.dart';
 import 'package:wethere/services/journey_service.dart';
-import 'package:wethere/providers/theme_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:wethere/services/auth_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -492,12 +475,12 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
+              AppTheme.accentOrange.withValues(alpha: 0.05),
               Colors.white,
-              Colors.grey.withValues(alpha: 0.02),
-              Colors.white,
+              AppTheme.accentOrange.withValues(alpha: 0.03),
             ],
             stops: const [0.0, 0.5, 1.0],
           ),
@@ -681,7 +664,7 @@ class _HomePageState extends State<HomePage> {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.transparent,
+                    color: AppTheme.dividerColor,
                     image: FirebaseAuth.instance.currentUser?.photoURL != null
                         ? DecorationImage(
                             image: NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!),
@@ -697,7 +680,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(width: 12),
               Expanded(
                 child: Container(
-                  color: Colors.transparent,
+                  color: const Color(0xFFF5F5F5),
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) {
@@ -738,7 +721,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: _showFilterModal,
                     icon: Icon(Icons.tune, color: AppTheme.primaryDark),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.transparent,
+                      backgroundColor: const Color(0xFFF5F5F5),
                     ),
                   ),
                   if (activeFilterCount > 0)
@@ -819,7 +802,7 @@ class _HomePageState extends State<HomePage> {
           child: filteredJourneys.isEmpty
               ? _buildEmptyFilterState()
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: filteredJourneys.length,
                   itemBuilder: (context, index) => _buildJourneyCard(filteredJourneys[index]),
                 ),
@@ -1325,234 +1308,279 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildJourneyCard(Journey journey) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with Avatar and Name - No background
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (journey.hostUserId != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UserProfilePage(
-                            userId: journey.hostUserId!,
-                            userName: journey.hostName,
-                            userAvatar: journey.hostAvatar,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: journey.hostAvatar != null
-                          ? DecorationImage(
-                              image: NetworkImage(journey.hostAvatar!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: journey.hostAvatar == null
-                        ? Icon(Icons.person, size: 28, color: AppTheme.textHint)
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        journey.hostName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Text(
-                            '${journey.reviews} reviews',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppTheme.textHint,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Row(
-                            children: List.generate(
-                              5,
-                              (i) => Icon(
-                                i < journey.rating.floor()
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color: AppTheme.accentOrange,
-                                size: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.more_horiz),
-                  onPressed: () {},
-                  color: AppTheme.textHint,
-                ),
-              ],
-            ),
-          ),
-
-          // Image Container - No border, just rounded corners
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Stack(
-              children: [
-                Container(
-                  height: 220,
-                  width: double.infinity,
-                  color: const Color(0xFF2A4A5C),
-                  child: journey.imageUrl.startsWith('http')
-                      ? Image.network(
-                          journey.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
-                        )
-                      : Image.asset(
-                          journey.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(journey.title),
-                        ),
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: GestureDetector(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  GestureDetector(
                     onTap: () {
-                      if (journey.firestoreId != null) {
-                        context.read<JourneyProvider>().toggleLike(journey.firestoreId!);
+                      if (journey.hostUserId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserProfilePage(
+                              userId: journey.hostUserId!,
+                              userName: journey.hostName,
+                              userAvatar: journey.hostAvatar,
+                            ),
+                          ),
+                        );
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
+                        color: AppTheme.dividerColor,
+                        image: journey.hostAvatar != null
+                            ? DecorationImage(
+                                image: NetworkImage(journey.hostAvatar!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: Icon(
-                        _likedJourneyIds.contains(journey.firestoreId) ? Icons.favorite : Icons.favorite_border,
-                        color: _likedJourneyIds.contains(journey.firestoreId) ? Colors.red : AppTheme.textSecondary,
-                        size: 22,
-                      ),
+                      child: journey.hostAvatar == null
+                          ? const Icon(Icons.person, color: AppTheme.textHint)
+                          : null,
                     ),
                   ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: journey.badgeColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      journey.badgeText,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Content - No background
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  journey.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 14, color: AppTheme.textHint),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _openMaps(journey.location),
-                        child: Text(
-                          journey.location,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppTheme.accentOrange,
-                            decoration: TextDecoration.underline,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          journey.hostName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              '${journey.reviews} reviews',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textHint,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Row(
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  i < journey.rating.floor()
+                                      ? Icons.star
+                                      : (i <= journey.rating.ceil() && journey.rating % 1 != 0 ? Icons.star_half : Icons.star_border),
+                                  color: AppTheme.accentOrange,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.more_horiz),
+                    onPressed: () {},
+                    color: AppTheme.textHint,
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reviews',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textHint,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 14, color: AppTheme.textHint),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${journey.date} • ${journey.time}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
+                      Text(
+                        '${journey.reviews}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.people_outline, size: 14, color: AppTheme.textHint),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Meet at: ${journey.meetingPoint}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
+                    ],
+                  ),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Rating',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textHint,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildJourneyActionButton(context, journey),
-              ],
+                      Row(
+                        children: List.generate(
+                          5,
+                          (i) => Icon(
+                            i < journey.rating.floor()
+                                ? Icons.star
+                                : (i <= journey.rating.ceil() && journey.rating % 1 != 0 ? Icons.star_half : Icons.star_border),
+                            color: AppTheme.accentOrange,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            Container(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Container(
+                          height: 160,
+                          width: double.infinity,
+                          color: const Color(0xFF2A4A5C),
+                          child: journey.imageUrl.startsWith('http')
+                              ? Image.network(
+                                  journey.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildImageErrorWidget('Journey Image'),
+                                )
+                              : Image.asset(
+                                  journey.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => _buildImageErrorWidget('Asset Image'),
+                                ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_likedJourneyIds.contains(journey.id.toString())) {
+                                _likedJourneyIds.remove(journey.id.toString());
+                              } else {
+                                _likedJourneyIds.add(journey.id.toString());
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              _likedJourneyIds.contains(journey.id.toString())
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: _likedJourneyIds.contains(journey.id.toString())
+                                  ? Colors.red
+                                  : AppTheme.textHint,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: journey.badgeColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (journey.compensationType == jm.CompensationType.withGift)
+                                Text(
+                                  journey.giftEmoji ?? '🎁',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              const SizedBox(width: 6),
+                              Text(
+                                  journey.badgeText,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: journey.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const WidgetSpan(child: SizedBox(width: 8)),
+                          TextSpan(
+                            text: journey.description,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textHint,
+                            ),
+                          TextSpan(text: ' Meet: ${journey.meetingPoint}. Date: ${journey.date}, ${journey.time}'),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: _buildJourneyActionButton(context, journey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1569,91 +1597,95 @@ class _HomePageState extends State<HomePage> {
     if (isHost && !isPast) {
       final hasAcceptedApplicants = jModelRaw?.acceptedCompanionId != null;
       
-      return Row(
-        children: [
-          Expanded(
-            child: ShadButton.outline(
-              onPressed: () => _showApplicantsDialog(context, journey),
-              child: Text(
-                'YOUR JOURNEY',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.accentOrange,
-                  letterSpacing: 1,
+      return SizedBox(
+        width: double.infinity,
+        height: 44,
+        child: Row(
+          children: [
+            Expanded(
+              child: ShadButton.outline(
+                onPressed: () => _showApplicantsDialog(context, journey),
+                child: Text(
+                  'YOUR JOURNEY',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.accentOrange,
+                    letterSpacing: 1,
+                  ),
                 ),
               ),
             ),
-          ),
-          if (!hasAcceptedApplicants) ...[
-            const SizedBox(width: 12),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppTheme.accentOrange),
-              onPressed: () {
-                if (jModelRaw != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateJourneyPage(
-                        existingJourney: jModelRaw,
+            if (!hasAcceptedApplicants) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, color: AppTheme.accentOrange),
+                onPressed: () {
+                  if (jModelRaw != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreateJourneyPage(
+                          existingJourney: jModelRaw,
+                        ),
                       ),
+                    );
+                  }
+                },
+                tooltip: 'Edit Journey',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Delete Journey?'),
+                      content: const Text(
+                        'Are you sure you want to delete this journey? This action cannot be undone and all applications will be removed.',
+                      ),
+                      actions: [
+                        ShadButton.outline(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ShadButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          backgroundColor: Colors.red,
+                          child: const Text('Delete'),
+                        ),
+                      ],
                     ),
                   );
-                }
-              },
-              tooltip: 'Edit Journey',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: () async {
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Delete Journey?'),
-                    content: const Text(
-                      'Are you sure you want to delete this journey? This action cannot be undone and all applications will be removed.',
-                    ),
-                    actions: [
-                      ShadButton.outline(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancel'),
-                      ),
-                      ShadButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        backgroundColor: Colors.red,
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
 
-                if (confirmed == true && journey.firestoreId != null) {
-                  try {
-                    await JourneyService().deleteJourney(journey.firestoreId!);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Journey deleted successfully'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error deleting journey: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                  if (confirmed == true && journey.firestoreId != null) {
+                    try {
+                      await JourneyService().deleteJourney(journey.firestoreId!);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Journey deleted successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error deleting journey: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   }
-                }
-              },
-              tooltip: 'Delete Journey',
-            ),
+                },
+                tooltip: 'Delete Journey',
+              ),
+            ],
           ],
-        ],
+        ),
       );
     }
 
@@ -1667,54 +1699,83 @@ class _HomePageState extends State<HomePage> {
         final hoursUntilStart = startTime.difference(now).inHours;
         final isChatAvailable = hoursUntilStart <= 24;
         
-        return ShadButton(
-          onPressed: isChatAvailable ? () async {
-            if (journey.firestoreId != null && journey.hostUserId != null) {
-              try {
-                final chatService = ChatService();
-                final chatId = await chatService.getOrCreateChat(
-                  journey.firestoreId!,
-                  journey.hostUserId!,
-                  journeyTitle: journey.title,
-                );
-                if (context.mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatPage(
-                        chatId: chatId,
-                        otherUserName: journey.hostName,
-                        otherUserAvatar: journey.hostAvatar,
-                        journeyTitle: journey.title,
+        return SizedBox(
+          width: double.infinity,
+          height: 44,
+          child: ShadButton(
+            onPressed: isChatAvailable ? () async {
+              if (journey.firestoreId != null && journey.hostUserId != null) {
+                try {
+                  final chatService = ChatService();
+                  final chatId = await chatService.getOrCreateChat(
+                    journey.firestoreId!,
+                    journey.hostUserId!,
+                    journeyTitle: journey.title,
+                  );
+                  if (context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          chatId: chatId,
+                          otherUserName: journey.hostName,
+                          otherUserAvatar: journey.hostAvatar,
+                          journeyTitle: journey.title,
+                        ),
                       ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error opening chat: $e')),
-                  );
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error opening chat: $e')),
+                    );
+                  }
                 }
               }
-            }
-          } : () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Chat will be available 24 hours before the journey starts'),
-                backgroundColor: AppTheme.textSecondary,
-              ),
-            );
-          },
+            } : () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Chat will be available 24 hours before the journey starts'),
+                  backgroundColor: AppTheme.textSecondary,
+                ),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  isChatAvailable ? 'ACCEPTED' : 'ACCEPTED (Chat in ${hoursUntilStart}h)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: isChatAvailable ? Colors.green : Colors.grey,
+          ),
+        );
+      }
+      
+      return SizedBox(
+        width: double.infinity,
+        height: 44,
+        child: ShadButton(
+          onPressed: null,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.chat_bubble_outline, color: Colors.white),
+              const Icon(Icons.check, color: Colors.white),
               const SizedBox(width: 8),
-              Text(
-                isChatAvailable ? 'ACCEPTED' : 'ACCEPTED (Chat in ${hoursUntilStart}h)',
-                style: const TextStyle(
-                  fontSize: 14,
+              const Text(
+                'APPLIED',
+                style: TextStyle(
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                   color: Colors.white,
@@ -1722,29 +1783,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          backgroundColor: isChatAvailable ? Colors.green : Colors.grey,
-        );
-      }
-      
-      return ShadButton(
-        onPressed: null,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check, color: Colors.white),
-            const SizedBox(width: 8),
-            const Text(
-              'APPLIED',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-                color: Colors.white,
-              ),
-            ),
-          ],
+          backgroundColor: Colors.green,
         ),
-        backgroundColor: Colors.green,
       );
     }
 
@@ -1778,6 +1818,7 @@ class _HomePageState extends State<HomePage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
                return const SizedBox(
+                 width: double.infinity,
                  height: 44,
                  child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))),
                );
@@ -1787,21 +1828,29 @@ class _HomePageState extends State<HomePage> {
             final hasReviewed = existingReview != null;
 
             if (hasReviewed) {
-               return ShadButton(
-                 onPressed: () {
-                   _showReviewDialog(context, existingReview);
-                 },
-                 backgroundColor: Colors.grey,
-                 child: const Text('REVIEW SUBMITTED', style: TextStyle(
-                   fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1
-                 )),
+               return SizedBox(
+                 width: double.infinity,
+                 height: 44,
+                 child: ShadButton(
+                   onPressed: () {
+                     _showReviewDialog(context, existingReview);
+                   },
+                   backgroundColor: Colors.grey,
+                   child: const Text('REVIEW SUBMITTED', style: TextStyle(
+                     fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1
+                   )),
+                 )
                );
             } else {
-               return ShadButton(
-                 onPressed: () => _openReviewDialog(context, journey, revieweeName, revieweeId),
-                 child: const Text('WRITE REVIEW', style: TextStyle(
-                   fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1
-                 )),
+               return SizedBox(
+                 width: double.infinity,
+                 height: 44,
+                 child: ShadButton(
+                   onPressed: () => _openReviewDialog(context, journey, revieweeName, revieweeId),
+                   child: const Text('WRITE REVIEW', style: TextStyle(
+                     fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1
+                   )),
+                 )
                );
             }
           },
@@ -1810,41 +1859,45 @@ class _HomePageState extends State<HomePage> {
       return const SizedBox(height: 44, child: Center(child: Text('Completed', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold))));
     }
 
-    return ShadButton(
-      onPressed: () {
-        if (journey.firestoreId == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('This is a demo journey and cannot be applied to.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          return;
-        }
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: ShadButton(
+        onPressed: () {
+          if (journey.firestoreId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('This is a demo journey and cannot be applied to.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            return;
+          }
 
-        final journeyModel = _journeyModelsById[journey.firestoreId];
-        
-        if (journeyModel != null) {
-          _checkProfileAndProceed(
-            actionType: 'join',
-            onProceed: () => _handleApplyJourney(context, journeyModel),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Unable to apply. Journey data not found.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-      child: const Text(
-        'APPLY',
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1,
-          color: Colors.white,
+          final journeyModel = _journeyModelsById[journey.firestoreId];
+          
+          if (journeyModel != null) {
+            _checkProfileAndProceed(
+              actionType: 'join',
+              onProceed: () => _handleApplyJourney(context, journeyModel),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Unable to apply. Journey data not found.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        child: const Text(
+          'APPLY',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -2149,13 +2202,24 @@ class _HomePageState extends State<HomePage> {
           )),
         ),
         if (ongoing.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Text('No ongoing journeys', style: AppTheme.bodyRegular.copyWith(color: AppTheme.textHint)),
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.timelapse, color: AppTheme.textHint),
+                const SizedBox(width: 12),
+                Text('No ongoing journeys', style: AppTheme.bodyRegular),
+              ],
+            ),
           )
         else
           ...ongoing.map((j) => Padding(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.only(bottom: 12),
             child: _buildJourneyCard(j),
           )).toList(),
 
@@ -2168,10 +2232,23 @@ class _HomePageState extends State<HomePage> {
           )),
         ),
         if (upcoming.isEmpty)
-          Text('No upcoming journeys', style: AppTheme.bodyRegular.copyWith(color: AppTheme.textHint))
+          Container(
+             padding: const EdgeInsets.all(16),
+             decoration: BoxDecoration(
+               color: Colors.grey[100],
+               borderRadius: BorderRadius.circular(12),
+             ),
+             child: Row(
+               children: [
+                 Icon(Icons.calendar_today, color: AppTheme.textHint),
+                 const SizedBox(width: 12),
+                 Text('No upcoming journeys', style: AppTheme.bodyRegular),
+               ],
+             ),
+           )
         else
           ...upcoming.map((j) => Padding(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.only(bottom: 12),
             child: _buildJourneyCard(j),
           )).toList(),
       ],
@@ -2214,13 +2291,26 @@ class _HomePageState extends State<HomePage> {
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: unique.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final journey = unique[index];
             final isMyJourney = journey.hostUserId == userId;
 
             return GestureDetector(
               onTap: isMyJourney ? () => _showApplicantsDialog(context, journey) : null,
+              child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2255,13 +2345,14 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const Spacer(),
                       if (isMyJourney)
-                         Text('Tap to view applicants', style: TextStyle(color: AppTheme.accentOrange, fontSize: 12))
+                         const Text('Tap to view applicants', style: TextStyle(color: AppTheme.accentOrange, fontSize: 12))
                       else
                          _buildApplicationStatusBadge(journey.firestoreId),
                     ],
                   ),
                 ],
               ),
+            ),
             );
           },
         );
@@ -2328,10 +2419,7 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           itemCount: uniquePast.length,
           itemBuilder: (context, idx) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: _buildJourneyCard(uniquePast[idx]),
-            );
+            return _buildJourneyCard(uniquePast[idx]);
           },
         );
       },
@@ -2675,15 +2763,18 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
                           child: Row(
                             children: [
                               CircleAvatar(
-                                radius: 28,
+                                radius: 24,
                                 backgroundColor: Colors.grey.shade200,
                                 backgroundImage: otherAvatar != null ? NetworkImage(otherAvatar) : null,
                                 child: otherAvatar == null 
-                                    ? Text(otherName[0].toUpperCase(), style: TextStyle(fontSize: 18, color: AppTheme.textSecondary))
+                                    ? Text(otherName[0].toUpperCase(), style: TextStyle(color: AppTheme.textSecondary))
                                     : null,
                               ),
                               const SizedBox(width: 12),
@@ -2694,7 +2785,7 @@ class _HomePageState extends State<HomePage> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(otherName, style: AppTheme.headingS.copyWith(fontSize: 16, fontWeight: FontWeight.w600)),
+                                        Text(otherName, style: AppTheme.headingS.copyWith(fontSize: 16)),
                                         Text(
                                           timeago.format(timestamp, locale: 'en_short'),
                                           style: TextStyle(color: AppTheme.textHint, fontSize: 12),
@@ -2704,7 +2795,7 @@ class _HomePageState extends State<HomePage> {
                                     const SizedBox(height: 4),
                                     Text(
                                       journeyTitle,
-                                      style: TextStyle(color: AppTheme.accentOrange, fontSize: 13, fontWeight: FontWeight.w500),
+                                      style: TextStyle(color: AppTheme.accentOrange, fontSize: 12, fontWeight: FontWeight.w500),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -2929,39 +3020,66 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Profile header - No border
-                Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppTheme.accentOrange.withValues(alpha: 0.1),
-                      backgroundImage: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) != null
-                          ? NetworkImage(userData['photo'] ?? FirebaseAuth.instance.currentUser!.photoURL!)
-                          : null,
-                      child: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) == null
-                          ? Icon(Icons.person, size: 50, color: AppTheme.accentOrange)
-                          : null,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.surface,
+                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 14),
-                    Text(
-                      userData['firstName'] != null ? '${userData['firstName']} ${userData['lastName'] ?? ''}' : (FirebaseAuth.instance.currentUser?.displayName ?? 'Your Profile'), 
-                      style: AppTheme.headingM.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 42,
+                            backgroundColor: AppTheme.accentOrange.withValues(alpha: 0.1),
+                            backgroundImage: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) != null
+                                ? NetworkImage(userData['photo'] ?? FirebaseAuth.instance.currentUser!.photoURL!)
+                                : null,
+                            child: (userData['photo'] ?? FirebaseAuth.instance.currentUser?.photoURL) == null
+                                ? Icon(Icons.person, size: 42, color: AppTheme.accentOrange)
+                                : null,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            userData['firstName'] != null ? '${userData['firstName']} ${userData['lastName'] ?? ''}' : (FirebaseAuth.instance.currentUser?.displayName ?? 'Your Profile'), 
+                            style: AppTheme.headingM.copyWith(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.email ?? 'Complete your profile',
+                            style: AppTheme.bodySmall.copyWith(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      FirebaseAuth.instance.currentUser?.email ?? 'Complete your profile',
-                      style: AppTheme.bodySmall.copyWith(
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 if (userId != null)
                   FutureBuilder<Map<String, dynamic>>(
@@ -2996,7 +3114,7 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 _buildSettingsTile(
                   'Edit Profile',
@@ -3063,210 +3181,222 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: isDark ? AppTheme.darkTheme.scaffoldBackgroundColor : AppTheme.backgroundColor,
               appBar: AppBar(
                 title: const Text('Settings'),
-                backgroundColor: Colors.transparent,
+                backgroundColor: isDark ? const Color(0xFF161B22) : Colors.white,
                 elevation: 0,
               ),
-              body: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [AppTheme.accentOrange, Colors.orangeAccent],
+              body: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark 
+                        ? [const Color(0xFF0D1117), const Color(0xFF161B22)]
+                        : [const Color(0xFFF8F9FA), const Color(0xFFE9ECEF)],
+                  ),
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [AppTheme.accentOrange, Colors.orangeAccent],
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: isDark ? const Color(0xFF0D1117) : Colors.white,
+                              backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
+                                  ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
+                                  : null,
+                              child: FirebaseAuth.instance.currentUser?.photoURL == null
+                                  ? Icon(Icons.person, size: 40, color: AppTheme.accentOrange)
+                                  : null,
                             ),
                           ),
-                          child: CircleAvatar(
-                            radius: 40,
-                            backgroundColor: isDark ? const Color(0xFF0D1117) : Colors.white,
-                            backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
-                                ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
-                                : null,
-                            child: FirebaseAuth.instance.currentUser?.photoURL == null
-                                ? Icon(Icons.person, size: 40, color: AppTheme.accentOrange)
-                                : null,
+                          const SizedBox(height: 16),
+                          Text(
+                            FirebaseAuth.instance.currentUser?.displayName ?? 'User',
+                            style: AppTheme.headingM.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : AppTheme.primaryDark,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          FirebaseAuth.instance.currentUser?.displayName ?? 'User',
-                          style: AppTheme.headingM.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : AppTheme.primaryDark,
+                          Text(
+                            FirebaseAuth.instance.currentUser?.email ?? '',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        Text(
-                          FirebaseAuth.instance.currentUser?.email ?? '',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  _buildSectionHeader('APP', isDark),
-                  _buildGlassTile(
-                    isDark: isDark,
-                    child: SwitchListTile(
-                      title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: const Text('Enable dark theme'),
-                      value: isDark,
-                      onChanged: (value) {
-                        themeProvider.toggleTheme(value);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(value ? 'Dark mode enabled' : 'Dark mode disabled'),
-                            duration: const Duration(seconds: 1),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: AppTheme.accentOrange,
-                          ),
-                        );
-                      },
-                      secondary: Icon(
-                        isDark ? Icons.brightness_2 : Icons.brightness_low,
-                        color: AppTheme.accentOrange,
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  _buildSectionHeader('ACCOUNT', isDark),
-                  _buildGlassTile(
-                    isDark: isDark,
-                    child: Column(
-                      children: [
-                        _buildModernSettingsTile(
-                          'Edit Profile',
-                          Icons.person_outline,
-                          isDark,
-                          onTap: () async {
-                            final userId = FirebaseAuth.instance.currentUser?.uid;
-                            if (userId == null) return;
-                            final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-                            final userData = doc.data() ?? {};
-                            if (!mounted) return;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CreateProfilePage(
-                                  firstName: userData['firstName'] ?? '',
-                                  lastName: userData['lastName'] ?? '',
-                                  phone: userData['phone'] ?? '',
-                                  bio: userData['bio'] ?? '',
-                                  occupation: userData['occupation'],
-                                  photoUrl: userData['photo'],
-                                  returnAfterComplete: true,
+                    const SizedBox(height: 40),
+
+                    _buildSectionHeader('APP', isDark),
+                    
+                    _buildGlassTile(
+                      isDark: isDark,
+                      child: SwitchListTile(
+                        title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600)),
+                        subtitle: const Text('Enable dark theme'),
+                        value: isDark,
+                        onChanged: (value) {
+                          themeProvider.toggleTheme(value);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(value ? 'Dark mode enabled' : 'Dark mode disabled'),
+                              duration: const Duration(seconds: 1),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: AppTheme.accentOrange,
+                            ),
+                          );
+                        },
+                        secondary: Icon(
+                          isDark ? Icons.brightness_2 : Icons.brightness_low,
+                          color: AppTheme.accentOrange,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    _buildSectionHeader('ACCOUNT', isDark),
+                    _buildGlassTile(
+                      isDark: isDark,
+                      child: Column(
+                        children: [
+                          _buildModernSettingsTile(
+                            'Edit Profile',
+                            Icons.person_outline,
+                            isDark,
+                            onTap: () async {
+                              final userId = FirebaseAuth.instance.currentUser?.uid;
+                              if (userId == null) return;
+                              final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+                              final userData = doc.data() ?? {};
+                              if (!mounted) return;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => CreateProfilePage(
+                                    firstName: userData['firstName'] ?? '',
+                                    lastName: userData['lastName'] ?? '',
+                                    phone: userData['phone'] ?? '',
+                                    bio: userData['bio'] ?? '',
+                                    occupation: userData['occupation'],
+                                    photoUrl: userData['photo'],
+                                    returnAfterComplete: true,
+                                  ),
                                 ),
-                              ),
-                            ).then((value) {
-                              if (value == true && mounted) setState(() {});
-                            });
-                          },
-                        ),
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                        _buildModernSettingsTile(
-                          'Change Phone Number',
-                          Icons.phone_outlined,
-                          isDark,
-                          onTap: () => _showChangePhoneDialog(),
-                        ),
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                        _buildModernSettingsTile(
-                          'Change Email Address',
-                          Icons.email_outlined,
-                          isDark,
-                          onTap: () => _showChangeEmailDialog(),
-                        ),
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                        _buildModernSettingsTile(
-                          'Change Password',
-                          Icons.lock_outline,
-                          isDark,
-                          onTap: () => _showChangePasswordDialog(),
-                        ),
-                      ],
+                              ).then((value) {
+                                if (value == true && mounted) setState(() {});
+                              });
+                            },
+                          ),
+                          Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                          _buildModernSettingsTile(
+                            'Change Phone Number',
+                            Icons.phone_outlined,
+                            isDark,
+                            onTap: () => _showChangePhoneDialog(),
+                          ),
+                          Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                          _buildModernSettingsTile(
+                            'Change Email Address',
+                            Icons.email_outlined,
+                            isDark,
+                            onTap: () => _showChangeEmailDialog(),
+                          ),
+                          Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                          _buildModernSettingsTile(
+                            'Change Password',
+                            Icons.lock_outline,
+                            isDark,
+                            onTap: () => _showChangePasswordDialog(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('PAYMENTS', isDark),
-                  _buildGlassTile(
-                    isDark: isDark,
-                    child: Column(
-                      children: [
-                        _buildModernSettingsTile(
-                          'Payment Methods',
-                          Icons.payment_outlined,
-                          isDark,
-                          onTap: () => _showPaymentMethodsDialog(),
-                        ),
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                        _buildModernSettingsTile(
-                          'Add Funds / Payment Test',
-                          Icons.add_card_outlined,
-                          isDark,
-                          onTap: () => _showPaymentTestDialog(),
-                        ),
-                      ],
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('PAYMENTS', isDark),
+                    _buildGlassTile(
+                      isDark: isDark,
+                      child: Column(
+                        children: [
+                          _buildModernSettingsTile(
+                            'Payment Methods',
+                            Icons.payment_outlined,
+                            isDark,
+                            onTap: () => _showPaymentMethodsDialog(),
+                          ),
+                          Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                          _buildModernSettingsTile(
+                            'Add Funds / Payment Test',
+                            Icons.add_card_outlined,
+                            isDark,
+                            onTap: () => _showPaymentTestDialog(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('INFORMATION', isDark),
-                  _buildGlassTile(
-                    isDark: isDark,
-                    child: Column(
-                      children: [
-                        _buildModernSettingsTile(
-                          'About Us',
-                          Icons.info_outline,
-                          isDark,
-                          onTap: () => _showAboutUs(),
-                        ),
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                        _buildModernSettingsTile(
-                          'Terms of Service',
-                          Icons.description_outlined,
-                          isDark,
-                          onTap: () => _showTermsOfService(),
-                        ),
-                      ],
+                    
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('INFORMATION', isDark),
+                    _buildGlassTile(
+                      isDark: isDark,
+                      child: Column(
+                        children: [
+                          _buildModernSettingsTile(
+                            'About Us',
+                            Icons.info_outline,
+                            isDark,
+                            onTap: () => _showAboutUs(),
+                          ),
+                          Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
+                          _buildModernSettingsTile(
+                            'Terms of Service',
+                            Icons.description_outlined,
+                            isDark,
+                            onTap: () => _showTermsOfService(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('DANGER ZONE', isDark, isDanger: true),
-                  _buildGlassTile(
-                    isDark: isDark,
-                    isDanger: true,
-                    child: Column(
-                      children: [
-                        _buildModernSettingsTile(
-                          'Deactivate Account',
-                          Icons.person_off_outlined,
-                          isDark,
-                          onTap: () => _handleDeactivateAccount(),
-                          isDanger: true,
-                        ),
-                        Divider(height: 1, color: Colors.red.withValues(alpha: 0.1)),
-                        _buildModernSettingsTile(
-                          'Delete Account',
-                          Icons.delete_forever_outlined,
-                          isDark,
-                          onTap: () => _handleDeleteAccount(),
-                          isDanger: true,
-                        ),
-                      ],
+                    
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('DANGER ZONE', isDark, isDanger: true),
+                    _buildGlassTile(
+                      isDark: isDark,
+                      isDanger: true,
+                      child: Column(
+                        children: [
+                          _buildModernSettingsTile(
+                            'Deactivate Account',
+                            Icons.person_off_outlined,
+                            isDark,
+                            onTap: () => _handleDeactivateAccount(),
+                            isDanger: true,
+                          ),
+                          Divider(height: 1, color: Colors.red.withValues(alpha: 0.1)),
+                          _buildModernSettingsTile(
+                            'Delete Account',
+                            Icons.delete_forever_outlined,
+                            isDark,
+                            onTap: () => _handleDeleteAccount(),
+                            isDanger: true,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             );
           },
@@ -3359,11 +3489,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Amount (USD)',
                 prefixText: '\$ ',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 fillColor: AppTheme.dividerColor,
@@ -3410,11 +3539,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               TextFormField(
                 controller: currentPhoneController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Current Phone Number',
                   hintText: '+1 234 567 8900',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3431,11 +3559,10 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: newPhoneController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'New Phone Number',
                   hintText: '+1 234 567 8900',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3674,11 +3801,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'New Email',
                   hintText: 'email@example.com',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3694,11 +3820,10 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Confirm Password',
                   hintText: 'Enter your current password',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3771,10 +3896,9 @@ class _HomePageState extends State<HomePage> {
             children: [
               TextFormField(
                 controller: currentPasswordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Current Password',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3786,10 +3910,9 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: newPasswordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'New Password',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   fillColor: AppTheme.dividerColor,
@@ -3855,7 +3978,7 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
             title: const Text('Help & Support'),
-            backgroundColor: Colors.transparent,
+            backgroundColor: Colors.white,
             elevation: 0,
           ),
           body: ListView(
@@ -3863,6 +3986,17 @@ class _HomePageState extends State<HomePage> {
             children: [
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: ListTile(
                   leading: const Icon(Icons.chat_bubble_outline, color: AppTheme.accentOrange),
                   title: const Text('Chat with Support'),
@@ -3985,6 +4119,15 @@ class _HomePageState extends State<HomePage> {
             ? (isDanger ? Colors.red.withAlpha(13) : Colors.white.withAlpha(13))
             : (isDanger ? Colors.red.withAlpha(8) : Colors.white.withAlpha(8)),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: isDark 
+            ? [] 
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -4032,55 +4175,75 @@ class _HomePageState extends State<HomePage> {
   Widget _buildStatCard(String label, String value, {IconData? icon, bool isRating = false, double rating = 0.0}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-        child: Column(
-          children: [
-            if (icon != null) ...[
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppTheme.accentOrange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, size: 16, color: AppTheme.accentOrange),
-              ),
-              const SizedBox(height: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
             ],
-            if (isRating && rating > 0) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (int i = 1; i <= 5; i++)
-                    Icon(
-                      i <= rating.floor() 
-                          ? Icons.star 
-                          : (i <= rating.ceil() && rating % 1 != 0 ? Icons.star_half : Icons.star_border),
-                      color: Colors.amber,
-                      size: 12,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-            ],
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.accentOrange,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label, 
-              style: AppTheme.bodySmall.copyWith(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
-              ),
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+          child: Column(
+            children: [
+              if (icon != null) ...[
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppTheme.accentOrange),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (isRating && rating > 0) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int i = 1; i <= 5; i++)
+                      Icon(
+                        i <= rating.floor() 
+                            ? Icons.star 
+                            : (i <= rating.ceil() && rating % 1 != 0 ? Icons.star_half : Icons.star_border),
+                        color: Colors.amber,
+                        size: 12,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.accentOrange,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label, 
+                style: AppTheme.bodySmall.copyWith(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -4088,53 +4251,76 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSettingsTile(String title, IconData icon, {VoidCallback? onTap}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: InkWell(
           onTap: onTap ?? () {},
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.accentOrange.withValues(alpha: 0.15),
-                        AppTheme.accentOrange.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.accentOrange.withValues(alpha: 0.15),
+                          AppTheme.accentOrange.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    icon, 
-                    size: 20, 
-                    color: AppTheme.accentOrange,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    title, 
-                    style: AppTheme.labelMedium.copyWith(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
+                    child: Icon(
+                      icon, 
+                      size: 20, 
+                      color: AppTheme.accentOrange,
                     ),
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right, 
-                  size: 18, 
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ],
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      title, 
+                      style: AppTheme.labelMedium.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_ios, 
+                      size: 12, 
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

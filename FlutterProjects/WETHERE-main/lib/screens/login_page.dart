@@ -69,15 +69,14 @@ class _LoginPageState extends State<LoginPage> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              AppTheme.accentOrange.withValues(alpha: 0.08),
-              AppTheme.primaryDark.withValues(alpha: 0.05),
               Colors.white,
-              AppTheme.accentOrange.withValues(alpha: 0.06),
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
             ],
-            stops: const [0.0, 0.3, 0.7, 1.0],
+            stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: SafeArea(
@@ -103,8 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppTheme.accentOrange.withValues(alpha: 0.1),
-                          border: Border.all(color: AppTheme.accentOrange.withValues(alpha: 0.3), width: 2),
-                        ),
+                          ),
                         child: ClipOval(
                           child: Image.asset(
                             'assets/images/welcome_hero.png',
@@ -124,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.blue.withValues(alpha: 0.1),
-                          border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
                         ),
                         child: ClipOval(
                           child: Image.asset(
@@ -145,7 +142,6 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.green.withValues(alpha: 0.1),
-                          border: Border.all(color: Colors.green.withValues(alpha: 0.3), width: 2),
                         ),
                         child: ClipOval(
                           child: Image.asset(
@@ -166,7 +162,6 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.purple.withValues(alpha: 0.1),
-                          border: Border.all(color: Colors.purple.withValues(alpha: 0.3), width: 2),
                         ),
                         child: ClipOval(
                           child: Image.asset(

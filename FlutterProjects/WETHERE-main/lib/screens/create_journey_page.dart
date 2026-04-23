@@ -429,8 +429,21 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -508,7 +521,6 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
                         decoration: BoxDecoration(
                           color: AppTheme.accentOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.accentOrange.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
@@ -532,7 +544,6 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
                         ),
                         child: const Center(
                           child: Column(
@@ -747,7 +758,6 @@ class _CreateJourneyPageState extends State<CreateJourneyPage> {
                               const SizedBox(width: 12),
                               Container(
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: DropdownButton<String>(

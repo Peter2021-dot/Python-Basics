@@ -57,7 +57,20 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: NestedScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverToBoxAdapter(
             child: _buildProfileHeader(),
@@ -102,7 +115,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppTheme.dividerColor,
-                border: Border.all(color: AppTheme.borderColor, width: 2),
                 image: widget.userAvatar != null
                     ? DecorationImage(
                         image: NetworkImage(widget.userAvatar!),
@@ -223,7 +235,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: AppTheme.borderColor),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +283,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +393,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -460,7 +469,6 @@ class _UserProfilePageState extends State<UserProfilePage> with SingleTickerProv
         decoration: BoxDecoration(
           color: AppTheme.dividerColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
         ),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         child: Column(

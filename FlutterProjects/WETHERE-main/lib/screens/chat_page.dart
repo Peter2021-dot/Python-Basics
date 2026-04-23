@@ -70,8 +70,21 @@ class _ChatPageState extends State<ChatPage> {
         elevation: 1,
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
       ),
-      body: Column(
-        children: [
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Colors.grey.withValues(alpha: 0.02),
+              Colors.white,
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: Column(
+          children: [
           Expanded(
             child: StreamBuilder<List<ChatMessage>>(
               stream: _chatService.getMessages(widget.chatId),
@@ -197,6 +210,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
