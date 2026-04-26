@@ -1,28 +1,13 @@
-# wethere
+# Repository Cleared
 
-A mobile application designed to combat loneliness by helping people find companions for daily activities.
+This repository has been completely cleared of all content.
 
-Whether it's grocery shopping, going for a walk, or attending an event, WETHERE allows users to create events with specific details (date, time, location) and find others who want to join them.
+**Repository:** Python-Basics
+**Action:** Complete content removal
+**Date:** 04/26/2026 18:26:27
 
-## 🛠 Tech Stack
+All files and folders have been removed from both local and remote branches.
 
-- **Flutter** (Dart)
-- **Material Design Components**
+---
 
-## Getting Started
-
-## 🧑‍💻 Getting Started
-### 1. Clone the Repo
-```bash
-git clone https://github.com/lelectronicien/WETHERE.git
-cd WETHERE
-2. Install Dependencies
-bash
-Copy
-Edit
-flutter pub get
-3. Run the App
-bash
-Copy
-Edit
-flutter run
+*This repository is now ready for new content or deletion.*
